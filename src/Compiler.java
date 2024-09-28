@@ -1,6 +1,6 @@
-import frontend.Lexer;
-import frontend.Token;
-import frontend.TokenList;
+import Frontend.LexicalAnalysis.Lexer;
+import Frontend.LexicalAnalysis.Token;
+import Frontend.LexicalAnalysis.TokenList;
 import java.io.BufferedWriter;
 import java.io.FileNotFoundException;
 import java.io.FileReader;

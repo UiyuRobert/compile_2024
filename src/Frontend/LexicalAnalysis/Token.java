@@ -1,4 +1,5 @@
-package frontend;
+package Frontend.LexicalAnalysis;
+
 /**
  * 语法单元，包括 单词类别码 和 单词的字符/字符串形式（单词值） 以及 单词所在的行号
  * */
@@ -11,6 +12,10 @@ public class Token {
         this.kindCode = kindCode;
         this.value = value;
         this.lineNumber = lineNumber;
+    }
+
+    public KindCode getKindCode() {
+        return kindCode;
     }
 
     @Override

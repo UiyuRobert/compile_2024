@@ -1,4 +1,4 @@
-package frontend;
+package Frontend.LexicalAnalysis;
 
 import java.util.regex.Pattern;
 

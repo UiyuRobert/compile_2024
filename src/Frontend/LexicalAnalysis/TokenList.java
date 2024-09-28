@@ -1,4 +1,4 @@
-package frontend;
+package Frontend.LexicalAnalysis;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,6 +14,10 @@ public class TokenList {
 
     public void addToken(Token token) {
         tokens.add(token);
+    }
+
+    public List<Token> getTokens() {
+        return tokens;
     }
 
     @Override

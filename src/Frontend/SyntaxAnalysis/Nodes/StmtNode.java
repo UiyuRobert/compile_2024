@@ -1,0 +1,185 @@
+package Frontend.SyntaxAnalysis.Nodes;
+
+import Frontend.LexicalAnalysis.Token;
+
+import java.util.List;
+import java.util.Map;
+
+public class StmtNode implements Node {
+    /*-- Stmt → LVal '=' Exp ';' // i
+                | [Exp] ';' // i
+                | Block
+                | 'if' '(' Cond ')' Stmt [ 'else' Stmt ] // j
+                | 'for' '(' [ForStmt] ';' [Cond] ';' [ForStmt] ')' Stmt
+                | 'break' ';' | 'continue' ';' // i
+                | 'return' [Exp] ';' // i
+                | LVal '=' 'getint''('')'';' // i j
+                | LVal '=' 'getchar''('')'';' // i j
+                | 'printf''('StringConst {','Exp}')'';' / --*/
+
+    /*-- LVal '=' Exp ';'
+         LVal '=' 'getint''('')'';'
+         LVal '=' 'getchar''('')''; --*/
+    class LValStmt{
+        private Node lValNode;
+        private Token assignTerminal;
+        private Token getFuncTerminal = null;
+        private Token lparenTerminal = null;
+        private Token rparenTerminal = null;
+        private Node expNode = null;
+        private Token semicolonTerminal;
+
+        public LValStmt(Node lValNode, Token assignTerminal, Node expNode, Token semicolonTerminal){
+            this.lValNode = lValNode;
+            this.assignTerminal = assignTerminal;
+            this.expNode = expNode;
+            this.semicolonTerminal = semicolonTerminal;
+        }
+
+        public LValStmt(Node lValNode, Token assignTerminal, Token getFuncTerminal, Token lparenTerminal,
+                        Token rparenTerminal, Token semicolonTerminal) {
+            this.lValNode = lValNode;
+            this.assignTerminal = assignTerminal;
+            this.getFuncTerminal = getFuncTerminal;
+            this.lparenTerminal = lparenTerminal;
+            this.rparenTerminal = rparenTerminal;
+            this.semicolonTerminal = semicolonTerminal;
+        }
+    }
+
+    private LValStmt lValStmt = null;
+
+    /*-- [Exp] ';' |
+         'break' ';' | 'continue' ';' |
+         'return' [Exp] ';' --*/
+    private Node expNode = null; // 共用
+    private Token breakOrContinueTerminal = null;
+    private Token returnTerminal = null;
+    private Token semicolonTerminal = null;
+
+    /*-- Block --*/
+    private Node blockNode = null;
+
+    /*-- 'if' '(' Cond ')' Stmt [ 'else' Stmt ] --*/
+    class IfStmt{
+        private Token ifTerminal;
+        private Token lparenTerminal;
+        private Node conditionNode;
+        private Token rparenTerminal;
+        private Node stmtNode;
+        private Token elseTerminal;
+        private Node elseStmtNode;
+
+        public IfStmt(Token ifTerminal, Token lparenTerminal, Node conditionNode,
+                      Token rparenTerminal, Node stmtNode, Token elseTerminal, Node elseStmtNode) {
+            this.ifTerminal = ifTerminal;
+            this.lparenTerminal = lparenTerminal;
+            this.conditionNode = conditionNode;
+            this.rparenTerminal = rparenTerminal;
+            this.stmtNode = stmtNode;
+            this.elseTerminal = elseTerminal;
+            this.elseStmtNode = elseStmtNode;
+        }
+    }
+    private IfStmt ifStmt = null;
+
+    /*-- 'for' '(' [ForStmt] ';' [Cond] ';' [ForStmt] ')' Stmt --*/
+    class InForStmt {
+        private Token forTerminal;
+        private Token lparenTerminal;
+        private Node forStmtNode1;
+        private Token semicolonTerminal1;
+        private Node conditionNode;
+        private Token semicolonTerminal2;
+        private Node forStmtNode2;
+        private Token rparenTerminal;
+        private Node stmtNode;
+
+        public InForStmt(Token forTerminal, Token lparenTerminal, Node forStmtNode1,
+                         Token semicolonTerminal1, Node conditionNode, Token semicolonTerminal2,
+                         Node forStmtNode2, Token rparenTerminal, Node stmtNode) {
+            this.forTerminal = forTerminal;
+            this.lparenTerminal = lparenTerminal;
+            this.forStmtNode1 = forStmtNode1;
+            this.semicolonTerminal1 = semicolonTerminal1;
+            this.conditionNode = conditionNode;
+            this.semicolonTerminal2 = semicolonTerminal2;
+            this.forStmtNode2 = forStmtNode2;
+            this.rparenTerminal = rparenTerminal;
+            this.stmtNode = stmtNode;
+        }
+    }
+    private InForStmt inForStmt = null;
+
+    /*-- 'printf''('StringConst {','Exp}')'';' --*/
+    class PrintfStmt {
+        private Token printfTerminal;
+        private Token lparenTerminal;
+        private Token stringTerminal;
+        private List<Map.Entry<Node, Token>> expNodes;
+        private Token rparenTerminal;
+        private Token semicolonTerminal;
+
+        public PrintfStmt(Token printfTerminal, Token lparenTerminal, Token stringTerminal,
+                          List<Map.Entry<Node, Token>> expNodes, Token rparenTerminal, Token semicolonTerminal) {
+            this.printfTerminal = printfTerminal;
+            this.lparenTerminal = lparenTerminal;
+            this.stringTerminal = stringTerminal;
+            this.expNodes = expNodes;
+            this.rparenTerminal = rparenTerminal;
+            this.semicolonTerminal = semicolonTerminal;
+        }
+    }
+    private PrintfStmt printfStmt = null;
+
+    public StmtNode(Node lValNode, Token assignTerminal, Node expNode, Token semicolonTerminal){
+        /*-- LVal '=' Exp ';' --*/
+        this.lValStmt = new LValStmt(lValNode, assignTerminal, expNode, semicolonTerminal);
+    }
+
+    public StmtNode(Node lValNode, Token assignTerminal, Token getFuncTerminal,
+                    Token lparenTerminal, Token rparenTerminal, Token semicolonTerminal){
+        /*-- LVal '=' 'getint''('')'';' |  LVal '=' 'getchar''('')''; --*/
+        this.lValStmt = new LValStmt(lValNode, assignTerminal, getFuncTerminal, lparenTerminal,
+                rparenTerminal, semicolonTerminal);
+    }
+
+    public StmtNode(Token printfTerminal, Token lparenTerminal, Token stringTerminal,
+                    List<Map.Entry<Node, Token>> expNodes, Token rparenTerminal, Token semicolonTerminal) {
+        /*-- 'printf''('StringConst {','Exp}')'';' --*/
+        this.printfStmt = new PrintfStmt(printfTerminal, lparenTerminal, stringTerminal,
+                expNodes, rparenTerminal,semicolonTerminal);
+    }
+
+    public StmtNode(Token forTerminal, Token lparenTerminal, Node forStmtNode1,
+                    Token semicolonTerminal1, Node conditionNode, Token semicolonTerminal2,
+                    Node forStmtNode2, Token rparenTerminal, Node stmtNode) {
+        /*-- 'for' '(' [ForStmt] ';' [Cond] ';' [ForStmt] ')' Stmt --*/
+        this.inForStmt = new InForStmt(forTerminal, lparenTerminal, forStmtNode1, semicolonTerminal1,
+                conditionNode, semicolonTerminal2, forStmtNode2, rparenTerminal, stmtNode);
+    }
+
+    public StmtNode(Node blockNode) {
+        /*-- Block --*/
+        this.blockNode = blockNode;
+    }
+
+    public StmtNode(Node expNode, Token semicolonTerminal) {
+        /*-- [Exp] ';' --*/
+        this.expNode = expNode;
+        this.semicolonTerminal = semicolonTerminal;
+    }
+
+    public StmtNode(Token breakOrContinueTerminal, Token semicolonTerminal) {
+        /*-- 'break' ';' | 'continue' ';' --*/
+        this.breakOrContinueTerminal = breakOrContinueTerminal;
+        this.semicolonTerminal = semicolonTerminal;
+    }
+
+    public StmtNode(Token returnTerminal, Node expNode, Token semicolonTerminal) {
+        /*-- 'return' [Exp] ';' --*/
+        this.returnTerminal = returnTerminal;
+        this.expNode = expNode;
+        this.semicolonTerminal = semicolonTerminal;
+    }
+}
