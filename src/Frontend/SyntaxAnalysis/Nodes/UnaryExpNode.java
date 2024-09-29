@@ -28,4 +28,16 @@ public class UnaryExpNode implements Node {
         this.unaryOpNode = unaryOpNode;
     }
 
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        if (primaryExpNode != null) sb.append(primaryExpNode);
+        else if (identTerminal != null) {
+            sb.append(identTerminal).append(lparenTerminal);
+            if (funcRParamsNode != null) sb.append(funcRParamsNode);
+            sb.append(rparenTerminal);
+        } else sb.append(unaryOpNode).append(unaryExpNode);
+        sb.append("<UnaryExp>\n");
+        return sb.toString();
+    }
 }

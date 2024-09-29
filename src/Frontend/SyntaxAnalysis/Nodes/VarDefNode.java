@@ -29,4 +29,15 @@ public class VarDefNode implements Node {
         this.assignTerminal = assignTerminal;
         this.initValNode = initValNode;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder(identTerminal.toString());
+        if (lbracketTerminal != null) {
+            sb.append(lbracketTerminal).append(constExpNode.toString()).append(rbracketTerminal.toString());
+        }
+        if (assignTerminal != null) sb.append(assignTerminal).append(initValNode.toString());
+        sb.append("<VarDef>\n");
+        return sb.toString();
+    }
 }

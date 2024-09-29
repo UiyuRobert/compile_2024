@@ -9,4 +9,9 @@ public class UnaryOpNode implements Node {
     public UnaryOpNode(Token opTerminal) {
         this.opTerminal = opTerminal;
     }
+
+    @Override
+    public String toString() {
+        return opTerminal.toString() + "<UnaryOp>\n";
+    }
 }
