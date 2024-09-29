@@ -21,11 +21,12 @@ public class Compiler {
         /*-- 启动 Parser --*/
         Parser parser = new Parser(tokenList);
         parser.parse();
+        String result = parser.getParseResult();
         /*--判断是否有错误--*/
         if (ErrorHandling.isErrorOccurred()) {
             errorOutput();
         } else {
-            normalOutput(tokenList);
+            normalOutput(result);
         }
     }
 
@@ -51,11 +52,11 @@ public class Compiler {
         }
     }
 
-    private static void normalOutput(TokenList tokenList) {
-        String outputRightFileName = "lexer.txt";
+    private static void normalOutput(String output) {
+        String outputRightFileName = "parser.txt";
         try {
             BufferedWriter writer = new BufferedWriter(new FileWriter(outputRightFileName));
-            writer.write(tokenList.toString());
+            writer.write(output);
             writer.close();
         } catch (IOException e) {
             throw new RuntimeException(e);

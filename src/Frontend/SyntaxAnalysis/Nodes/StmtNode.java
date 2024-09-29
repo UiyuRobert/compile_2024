@@ -267,7 +267,7 @@ public class StmtNode implements Node {
                 sb.append(semicolonTerminal).append("<Stmt>\n");
                 return sb.toString();
             }
-            case PRINTFSTMT: return printfStmt.toString() + "<Stmt>\n";
+            case PRINTFSTMT: return printfStmt.toString();
             case BOCSTMT: return breakOrContinueTerminal.toString() + semicolonTerminal + "<Stmt>\n";
             case EXPSTMT: return expNode == null ? semicolonTerminal + "<Stmt>\n" :
                 expNode.toString() + semicolonTerminal + "<Stmt>\n";

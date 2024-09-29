@@ -18,6 +18,10 @@ public class Token {
         return kindCode;
     }
 
+    public int getLineNumber() {
+        return lineNumber;
+    }
+
     @Override
     public String toString() {
         return kindCode.name() + " " + value + '\n';

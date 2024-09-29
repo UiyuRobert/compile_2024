@@ -17,10 +17,10 @@ public class EqExpNode implements Node {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder(relExpNode.toString());
-        for (Map.Entry<Node, Token> entry : relExpNodes) {
-            sb.append(entry.getValue().toString()).append(entry.getKey().toString());
-        }
         sb.append("<EqExp>\n");
+        for (Map.Entry<Node, Token> entry : relExpNodes) {
+            sb.append(entry.getValue().toString()).append(entry.getKey().toString()).append("<EqExp>\n");
+        }
         return sb.toString();
     }
 }

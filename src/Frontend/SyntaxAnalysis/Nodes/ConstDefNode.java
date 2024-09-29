@@ -23,8 +23,7 @@ public class ConstDefNode implements Node {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(identTerminal.toString());
+        StringBuilder sb = new StringBuilder(identTerminal.toString());
         if (lbracketTerminal != null) {
             sb.append(lbracketTerminal).append(constExpNode.toString()).append(rbracketTerminal.toString());
         }

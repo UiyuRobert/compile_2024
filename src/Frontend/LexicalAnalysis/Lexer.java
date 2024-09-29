@@ -126,8 +126,7 @@ public class Lexer {
             token = new Token(KindCode.OR, "||", currentLineNumber);
             move(1);
         } else {
-            token = new Token(KindCode.OR, "|", currentLineNumber);
-            ErrorHandling.addError("a", currentLineNumber);
+            token = ErrorHandling.processLexicalError('|', currentLineNumber);
         }
         return token;
     }
@@ -138,8 +137,7 @@ public class Lexer {
             token = new Token(KindCode.AND, "&&", currentLineNumber);
             move(1);
         } else {
-            token = new Token(KindCode.AND, "&", currentLineNumber);
-            ErrorHandling.addError("a", currentLineNumber);
+            token = ErrorHandling.processLexicalError('&', currentLineNumber);
         }
         return token;
     }

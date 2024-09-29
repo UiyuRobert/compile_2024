@@ -4,7 +4,7 @@ import Frontend.LexicalAnalysis.Token;
 
 public class CharacterNode implements Node {
     /*-- Character → CharConst  --*/
-    private Token charConstTerminal;
+    private final Token charConstTerminal;
 
     public CharacterNode(Token charConstTerminal) {
         this.charConstTerminal = charConstTerminal;
@@ -12,6 +12,6 @@ public class CharacterNode implements Node {
 
     @Override
     public String toString() {
-        return charConstTerminal.toString() + "<Character\n>";
+        return charConstTerminal.toString() + "<Character>\n";
     }
 }

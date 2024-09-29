@@ -17,13 +17,11 @@ public class AddExpNode implements Node{
 
     @Override
     public String toString(){
-        StringBuilder sb = new StringBuilder();
-        sb.append(mulExpNode.toString());
-        for(Map.Entry<Node, Token> entry : mulExpNodes){
-            sb.append(entry.getValue().toString());
-            sb.append(entry.getKey().toString());
-        }
+        StringBuilder sb = new StringBuilder(mulExpNode.toString());
         sb.append("<AddExp>\n");
+        for(Map.Entry<Node, Token> entry : mulExpNodes){
+            sb.append(entry.getValue().toString()).append(entry.getKey().toString()).append("<AddExp>\n");
+        }
         return sb.toString();
     }
 }

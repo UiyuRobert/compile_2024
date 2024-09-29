@@ -36,13 +36,16 @@ public class ConstInitValNode implements Node {
         StringBuilder sb = new StringBuilder();
         if (constExpNodeOnly != null) sb.append(constExpNodeOnly);
         else if (lBraceTerminal != null) {
-            sb.append(lBraceTerminal).append(constExpNode.toString());
-            for (Map.Entry<Node, Token> entry : constExpNodes) {
-                sb.append(entry.getValue().toString()).append(entry.getKey().toString());
+            sb.append(lBraceTerminal);
+            if (constExpNode != null) {
+                sb.append(constExpNode);
+                for (Map.Entry<Node, Token> entry : constExpNodes) {
+                    sb.append(entry.getValue().toString()).append(entry.getKey().toString());
+                }
             }
             sb.append(rBraceTerminal);
         } else sb.append(stringTerminal.toString());
-        sb.append("<ConstInit>\n");
+        sb.append("<ConstInitVal>\n");
         return sb.toString();
     }
 }

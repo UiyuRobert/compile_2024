@@ -1,5 +1,6 @@
 package Frontend.SyntaxAnalysis;
 
+import ErrorHandling.ErrorHandling;
 import Frontend.LexicalAnalysis.KindCode;
 import Frontend.LexicalAnalysis.Token;
 import Frontend.LexicalAnalysis.TokenList;
@@ -26,7 +27,12 @@ public class Parser {
         compUnitNode = parseCompUnit();
     }
 
+    public String getParseResult() {
+        return compUnitNode.toString();
+    }
+
     private Token match(KindCode[] kindExpected) {
+        // System.out.println("now parse lineNum: " + currentToken.getLineNumber());
         Token token = currentToken;
         /*-- 对 currentToken 进行判断 --*/
         boolean isWrong = true;
@@ -34,7 +40,8 @@ public class Parser {
             if (currentToken.getKindCode() == kind) { isWrong = false; break; }
         }
         if (isWrong) {
-            /* TODO */
+            int errLineNum = tokens.get(index-1).getLineNumber();
+            return ErrorHandling.processSyntaxError(kindExpected[0], errLineNum);
         }
         ++index;
         currentToken = index >= tokens.size() ? null : tokens.get(index);
@@ -237,7 +244,7 @@ public class Parser {
     private FuncFParamNode parseFuncFParam() {
         /*-- FuncFParam → BType Ident ['[' ']'] --*/
         Node bTypeNode = parseBType();
-        Token identTerminal = match(new KindCode[]{KindCode.INTTK});
+        Token identTerminal = match(new KindCode[]{KindCode.IDENFR});
         Token lbracketTerminal = null;
         Token rbracketTerminal = null;
         if (currentToken.getKindCode() == KindCode.LBRACK) {
@@ -318,7 +325,7 @@ public class Parser {
                 if (currentToken.getKindCode() != KindCode.SEMICN) condNode = parseCond();
                 Token semicolonTerminal2 = match(new KindCode[]{KindCode.SEMICN});
                 Node forStmtNode2 = null;
-                if (currentToken.getKindCode() == KindCode.RPARENT) forStmtNode2 = parseForStmt();
+                if (currentToken.getKindCode() != KindCode.RPARENT) forStmtNode2 = parseForStmt();
                 Token rparenTerminal = match(new KindCode[]{KindCode.RPARENT});
                 Node stmtNode = parseStmt();
                 return new StmtNode(forTerminal, lparenTerminal, forStmtNode1, semicolonTerminal1,
@@ -518,7 +525,7 @@ public class Parser {
         List<Map.Entry<Node, Token>> addExpNodes = new ArrayList<>();
         while (isCompareOp(currentToken)) {
             Token compareTerminal = match(new KindCode[]{KindCode.LEQ,
-                    KindCode.GEQ, KindCode.GRE, KindCode.GEQ});
+                    KindCode.GEQ, KindCode.GRE, KindCode.LSS});
             Node addExpNode_ = parseAddExp();
             addExpNodes.add(new AbstractMap.SimpleImmutableEntry<>(addExpNode_, compareTerminal));
         }
@@ -598,7 +605,7 @@ public class Parser {
     }
 
     public boolean hasAssignLater() {
-        for (int i = index;;++i) {
+        for (int i = 0;;++i) {
             if (lookAhead(i) == null || lookAhead(i).getKindCode() == KindCode.SEMICN) return false;
             else if (lookAhead(i).getKindCode() == KindCode.ASSIGN) return true;
         }
