@@ -20,6 +20,19 @@ public class StmtNode implements Node {
     /*-- LVal '=' Exp ';'
          LVal '=' 'getint''('')'';'
          LVal '=' 'getchar''('')''; --*/
+    enum Kind {
+        IFSTMT,
+        FORSTMT,
+        BOCSTMT,
+        RETURNSTMT,
+        PRINTFSTMT,
+        FUNCSTMT,
+        BLOCKSTMT,
+        ASSIGNSTMT,
+        EXPSTMT;
+    }
+    private Kind kind;
+
     class LValStmt{
         private Node lValNode;
         private Token assignTerminal;
@@ -135,6 +148,7 @@ public class StmtNode implements Node {
     public StmtNode(Node lValNode, Token assignTerminal, Node expNode, Token semicolonTerminal){
         /*-- LVal '=' Exp ';' --*/
         this.lValStmt = new LValStmt(lValNode, assignTerminal, expNode, semicolonTerminal);
+        this.kind = Kind.ASSIGNSTMT;
     }
 
     public StmtNode(Node lValNode, Token assignTerminal, Token getFuncTerminal,
@@ -142,6 +156,7 @@ public class StmtNode implements Node {
         /*-- LVal '=' 'getint''('')'';' |  LVal '=' 'getchar''('')''; --*/
         this.lValStmt = new LValStmt(lValNode, assignTerminal, getFuncTerminal, lparenTerminal,
                 rparenTerminal, semicolonTerminal);
+        this.kind = Kind.FUNCSTMT;
     }
 
     public StmtNode(Token printfTerminal, Token lparenTerminal, Token stringTerminal,
@@ -149,6 +164,7 @@ public class StmtNode implements Node {
         /*-- 'printf''('StringConst {','Exp}')'';' --*/
         this.printfStmt = new PrintfStmt(printfTerminal, lparenTerminal, stringTerminal,
                 expNodes, rparenTerminal,semicolonTerminal);
+        this.kind = Kind.PRINTFSTMT;
     }
 
     public StmtNode(Token forTerminal, Token lparenTerminal, Node forStmtNode1,
@@ -157,23 +173,35 @@ public class StmtNode implements Node {
         /*-- 'for' '(' [ForStmt] ';' [Cond] ';' [ForStmt] ')' Stmt --*/
         this.inForStmt = new InForStmt(forTerminal, lparenTerminal, forStmtNode1, semicolonTerminal1,
                 conditionNode, semicolonTerminal2, forStmtNode2, rparenTerminal, stmtNode);
+        this.kind = Kind.FORSTMT;
+    }
+
+    public StmtNode(Token ifTerminal, Token lparenTerminal, Node conditionNode,
+                    Token rparenTerminal, Node stmtNode, Token elseTerminal, Node elseStmtNode) {
+        /*-- 'if' '(' Cond ')' Stmt [ 'else' Stmt ] --*/
+        this.ifStmt = new IfStmt(ifTerminal, lparenTerminal, conditionNode,
+                rparenTerminal, stmtNode, elseTerminal, elseStmtNode);
+        this.kind = Kind.IFSTMT;
     }
 
     public StmtNode(Node blockNode) {
         /*-- Block --*/
         this.blockNode = blockNode;
+        this.kind = Kind.BLOCKSTMT;
     }
 
     public StmtNode(Node expNode, Token semicolonTerminal) {
         /*-- [Exp] ';' --*/
         this.expNode = expNode;
         this.semicolonTerminal = semicolonTerminal;
+        this.kind = Kind.EXPSTMT;
     }
 
     public StmtNode(Token breakOrContinueTerminal, Token semicolonTerminal) {
         /*-- 'break' ';' | 'continue' ';' --*/
         this.breakOrContinueTerminal = breakOrContinueTerminal;
         this.semicolonTerminal = semicolonTerminal;
+        this.kind = Kind.BOCSTMT;
     }
 
     public StmtNode(Token returnTerminal, Node expNode, Token semicolonTerminal) {
@@ -181,5 +209,6 @@ public class StmtNode implements Node {
         this.returnTerminal = returnTerminal;
         this.expNode = expNode;
         this.semicolonTerminal = semicolonTerminal;
+        this.kind = Kind.RETURNSTMT;
     }
 }

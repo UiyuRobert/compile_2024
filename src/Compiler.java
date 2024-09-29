@@ -7,6 +7,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import ErrorHandling.ErrorHandling;
+import Frontend.SyntaxAnalysis.Parser;
 
 public class Compiler {
     public static void main(String[] args) throws FileNotFoundException {
@@ -17,6 +18,9 @@ public class Compiler {
         Lexer lexer = new Lexer(fileReader);
         /*--设置 TokenList--*/
         TokenList tokenList = createTokenList(lexer);
+        /*-- 启动 Parser --*/
+        Parser parser = new Parser(tokenList);
+        parser.parse();
         /*--判断是否有错误--*/
         if (ErrorHandling.isErrorOccurred()) {
             errorOutput();

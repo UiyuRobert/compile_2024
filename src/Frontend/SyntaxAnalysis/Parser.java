@@ -14,6 +14,7 @@ public class Parser {
     private List<Token> tokens;
     private Token currentToken;
     private int index;
+    private Node compUnitNode;
 
     public Parser(TokenList tokenList) {
         this.tokens = tokenList.getTokens();
@@ -22,7 +23,7 @@ public class Parser {
     }
 
     public void parse() {
-
+        compUnitNode = parseCompUnit();
     }
 
     private Token match(KindCode[] kindExpected) {
@@ -35,7 +36,8 @@ public class Parser {
         if (isWrong) {
             /* TODO */
         }
-        currentToken = tokens.get(++index);
+        ++index;
+        currentToken = index >= tokens.size() ? null : tokens.get(index);
         return token;
     }
 
@@ -290,7 +292,102 @@ public class Parser {
                 | LVal '=' 'getint''('')'';' // i j
                 | LVal '=' 'getchar''('')'';' // i j
                 | 'printf''('StringConst {','Exp}')'';' / --*/
-
+        switch (currentToken.getKindCode()) {
+            case IFTK: {
+                /*-- 'if' '(' Cond ')' Stmt [ 'else' Stmt ] --*/
+                Token ifTerminal = match(new KindCode[]{KindCode.IFTK});
+                Token lparenTerminal = match(new KindCode[]{KindCode.LPARENT});
+                Node condNode = parseCond();
+                Token rparenTerminal = match(new KindCode[]{KindCode.RPARENT});
+                Node stmtNode = parseStmt();
+                Token elseTerminal = null;
+                Node elseStmtNode = null;
+                if (currentToken.getKindCode() == KindCode.ELSETK) {
+                    elseTerminal = match(new KindCode[]{KindCode.ELSETK});
+                    elseStmtNode = parseStmt();
+                }
+                return new StmtNode(ifTerminal, lparenTerminal, condNode, rparenTerminal,
+                        stmtNode, elseTerminal, elseStmtNode);
+            }
+            case FORTK: {
+                /*-- 'for' '(' [ForStmt] ';' [Cond] ';' [ForStmt] ')' Stmt --*/
+                Token forTerminal = match(new KindCode[]{KindCode.FORTK});
+                Token lparenTerminal = match(new KindCode[]{KindCode.LPARENT});
+                Node forStmtNode1 = null;
+                if (currentToken.getKindCode() != KindCode.SEMICN) forStmtNode1 = parseForStmt();
+                Token semicolonTerminal1 = match(new KindCode[]{KindCode.SEMICN});
+                Node condNode = null;
+                if (currentToken.getKindCode() != KindCode.SEMICN) condNode = parseCond();
+                Token semicolonTerminal2 = match(new KindCode[]{KindCode.SEMICN});
+                Node forStmtNode2 = null;
+                if (currentToken.getKindCode() == KindCode.RPARENT) forStmtNode2 = parseForStmt();
+                Token rparenTerminal = match(new KindCode[]{KindCode.RPARENT});
+                Node stmtNode = parseStmt();
+                return new StmtNode(forTerminal, lparenTerminal, forStmtNode1, semicolonTerminal1,
+                        condNode, semicolonTerminal2, forStmtNode2, rparenTerminal, stmtNode);
+            }
+            case PRINTFTK: {
+                /*-- 'printf''('StringConst {','Exp}')'';' --*/
+                Token printfTerminal = match(new KindCode[]{KindCode.PRINTFTK});
+                Token lparenTerminal = match(new KindCode[]{KindCode.LPARENT});
+                Token stringTerminal = match(new KindCode[]{KindCode.STRCON});
+                List<Map.Entry<Node, Token>> expNodes = new ArrayList<>();
+                while (currentToken.getKindCode() == KindCode.COMMA) {
+                    Token commaTerminal = match(new KindCode[]{KindCode.COMMA});
+                    Node expNode = parseExp();
+                    expNodes.add(new AbstractMap.SimpleImmutableEntry<>(expNode, commaTerminal));
+                }
+                Token rparenTerminal = match(new KindCode[]{KindCode.RPARENT});
+                Token semicolonTerminal = match(new KindCode[]{KindCode.SEMICN});
+                return new StmtNode(printfTerminal, lparenTerminal, stringTerminal,
+                        expNodes, rparenTerminal, semicolonTerminal);
+            }
+            /* -- Block -- */
+            case LBRACE: return new StmtNode(parseBlock());
+            /*-- 'break' ';' | 'continue' ';' --*/
+            case BREAKTK:
+            case CONTINUETK: {
+                Token bocTerminal = match(new KindCode[]{KindCode.CONTINUETK, KindCode.BREAKTK});
+                Token semicolonTerminal = match(new KindCode[]{KindCode.SEMICN});
+                return new StmtNode(bocTerminal, semicolonTerminal);
+            }
+            case RETURNTK: {
+                /*-- 'return' [Exp] ';' --*/
+                Token returnTerminal = match(new KindCode[]{KindCode.RETURNTK});
+                Node expNode = null;
+                if (currentToken.getKindCode() != KindCode.SEMICN) expNode = parseExp();
+                Token semicolonTerminal = match(new KindCode[]{KindCode.SEMICN});
+                return new StmtNode(returnTerminal, expNode, semicolonTerminal);
+            }
+            default: {
+                /*-- LVal '=' Exp ';'
+                     LVal '=' 'getint''('')'';'
+                     LVal '=' 'getchar''('')'';' --*/
+                if (hasAssignLater()) {
+                    Node lValNode = parseLVal();
+                    Token assignTerminal = match(new KindCode[]{KindCode.ASSIGN});
+                    if (currentToken.getKindCode() == KindCode.GETCHARTK ||
+                            currentToken.getKindCode() == KindCode.GETINTTK) {
+                        Token funcTerminal = match(new KindCode[]{KindCode.GETCHARTK, KindCode.GETINTTK});
+                        Token lparenTerminal = match(new KindCode[]{KindCode.LPARENT});
+                        Token rparenTerminal = match(new KindCode[]{KindCode.RPARENT});
+                        Token semicolonTerminal = match(new KindCode[]{KindCode.SEMICN});
+                        return new StmtNode(lValNode, assignTerminal, funcTerminal, lparenTerminal,
+                                rparenTerminal, semicolonTerminal);
+                    }
+                    Node expNode = parseExp();
+                    Token semicolonTerminal = match(new KindCode[]{KindCode.SEMICN});
+                    return new StmtNode(lValNode, assignTerminal, expNode, semicolonTerminal);
+                } else {
+                    /*-- [Exp] ';' --*/
+                    if (currentToken.getKindCode() == KindCode.SEMICN)
+                        return new StmtNode((Node) null, match(new KindCode[]{KindCode.SEMICN}));
+                    Node expNode = parseExp();
+                    Token semicolonTerminal = match(new KindCode[]{KindCode.SEMICN});
+                    return new StmtNode(expNode, semicolonTerminal);
+                }
+            }
+        }
     }
 
     private ForStmtNode parseForStmt() {
@@ -500,6 +597,13 @@ public class Parser {
     public boolean isDecl(Token token) {
         KindCode kindCode = token.getKindCode();
         return kindCode == KindCode.INTTK || kindCode == KindCode.CHARTK || kindCode == KindCode.CONSTTK;
+    }
+
+    public boolean hasAssignLater() {
+        for (int i = index;;++i) {
+            if (lookAhead(i) == null || lookAhead(i).getKindCode() == KindCode.SEMICN) return false;
+            else if (lookAhead(i).getKindCode() == KindCode.ASSIGN) return true;
+        }
     }
 
 }
