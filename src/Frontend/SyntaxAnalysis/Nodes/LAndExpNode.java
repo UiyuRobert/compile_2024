@@ -14,4 +14,13 @@ public class LAndExpNode implements Node {
         this.eqExpNode = eqExpNode;
         this.eqExpNodes = eqExpNodes;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder(eqExpNode.toString());
+        for (Map.Entry<Node, Token> entry : eqExpNodes)
+            sb.append(entry.getValue().toString()).append(entry.getKey().toString());
+        sb.append("<LAndExp>\n");
+        return sb.toString();
+    }
 }

@@ -13,4 +13,13 @@ public class FuncRParamsNode implements Node {
         this.expNode = expNode;
         this.expNodes = expNodes;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder(expNode.toString());
+        for (Map.Entry<Node, Token> entry : expNodes)
+            sb.append(entry.getValue().toString()).append(entry.getKey().toString());
+        sb.append("<FuncRParams>\n");
+        return sb.toString();
+    }
 }

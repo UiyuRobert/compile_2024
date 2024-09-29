@@ -13,4 +13,11 @@ public class ForStmtNode implements Node {
         this.assignTerminal = assignTerminal;
         this.expNode = expNode;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder(lValNode.toString());
+        sb.append(assignTerminal).append(expNode.toString()).append("<ForStmt>\n");
+        return sb.toString();
+    }
 }

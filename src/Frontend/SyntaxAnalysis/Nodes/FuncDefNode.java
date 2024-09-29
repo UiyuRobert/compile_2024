@@ -20,4 +20,13 @@ public class FuncDefNode implements Node{
         this.rparenTerminal = rparenTerminal;
         this.blockNode = blockNode;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder(funcTypeNode.toString());
+        sb.append(identTerminal.toString()).append(lparenTerminal.toString());
+        if (funcFParams != null) sb.append(funcFParams);
+        sb.append(rparenTerminal.toString()).append(blockNode.toString()).append("<FuncDef>\n");
+        return sb.toString();
+    }
 }

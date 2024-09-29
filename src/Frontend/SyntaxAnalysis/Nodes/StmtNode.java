@@ -39,13 +39,13 @@ public class StmtNode implements Node {
         private Token getFuncTerminal = null;
         private Token lparenTerminal = null;
         private Token rparenTerminal = null;
-        private Node expNode = null;
+        private Node expNode_ = null;
         private Token semicolonTerminal;
 
-        public LValStmt(Node lValNode, Token assignTerminal, Node expNode, Token semicolonTerminal){
+        public LValStmt(Node lValNode, Token assignTerminal, Node expNode_, Token semicolonTerminal){
             this.lValNode = lValNode;
             this.assignTerminal = assignTerminal;
-            this.expNode = expNode;
+            this.expNode_ = expNode_;
             this.semicolonTerminal = semicolonTerminal;
         }
 
@@ -57,6 +57,16 @@ public class StmtNode implements Node {
             this.lparenTerminal = lparenTerminal;
             this.rparenTerminal = rparenTerminal;
             this.semicolonTerminal = semicolonTerminal;
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder sb = new StringBuilder(lValNode.toString());
+            sb.append(assignTerminal);
+            if (expNode_ != null) sb.append(expNode_);
+            else sb.append(getFuncTerminal.toString()).append(lparenTerminal).append(rparenTerminal);
+            sb.append(semicolonTerminal).append("<Stmt>\n");
+            return sb.toString();
         }
     }
 
@@ -93,6 +103,15 @@ public class StmtNode implements Node {
             this.elseTerminal = elseTerminal;
             this.elseStmtNode = elseStmtNode;
         }
+
+        @Override
+        public String toString() {
+            StringBuilder sb = new StringBuilder(ifTerminal.toString());
+            sb.append(lparenTerminal).append(conditionNode).append(rparenTerminal).append(stmtNode);
+            if (elseStmtNode != null) sb.append(elseTerminal).append(elseStmtNode);
+            sb.append("<Stmt>\n");
+            return sb.toString();
+        }
     }
     private IfStmt ifStmt = null;
 
@@ -121,6 +140,19 @@ public class StmtNode implements Node {
             this.rparenTerminal = rparenTerminal;
             this.stmtNode = stmtNode;
         }
+
+        @Override
+        public String toString() {
+            StringBuilder sb = new StringBuilder(forTerminal.toString());
+            sb.append(lparenTerminal);
+            if (forStmtNode1 != null) sb.append(forStmtNode1);
+            sb.append(semicolonTerminal1);
+            if (conditionNode != null) sb.append(conditionNode);
+            sb.append(semicolonTerminal2);
+            if (forStmtNode2 != null) sb.append(forStmtNode2);
+            sb.append(rparenTerminal).append(stmtNode).append("<Stmt>\n");
+            return sb.toString();
+        }
     }
     private InForStmt inForStmt = null;
 
@@ -141,6 +173,16 @@ public class StmtNode implements Node {
             this.expNodes = expNodes;
             this.rparenTerminal = rparenTerminal;
             this.semicolonTerminal = semicolonTerminal;
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder sb = new StringBuilder(printfTerminal.toString());
+            sb.append(lparenTerminal).append(stringTerminal);
+            for (Map.Entry<Node, Token> entry : expNodes)
+                sb.append(entry.getValue()).append(entry.getKey());
+            sb.append(rparenTerminal).append(semicolonTerminal).append("<Stmt>\n");
+            return sb.toString();
         }
     }
     private PrintfStmt printfStmt = null;
@@ -210,5 +252,26 @@ public class StmtNode implements Node {
         this.expNode = expNode;
         this.semicolonTerminal = semicolonTerminal;
         this.kind = Kind.RETURNSTMT;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        switch (kind) {
+            case FORSTMT: return inForStmt.toString();
+            case IFSTMT: return ifStmt.toString();
+            case BLOCKSTMT: return blockNode.toString() + "<Stmt>\n";
+            case RETURNSTMT: {
+                sb.append(returnTerminal);
+                if (expNode != null) sb.append(expNode);
+                sb.append(semicolonTerminal).append("<Stmt>\n");
+                return sb.toString();
+            }
+            case PRINTFSTMT: return printfStmt.toString() + "<Stmt>\n";
+            case BOCSTMT: return breakOrContinueTerminal.toString() + semicolonTerminal + "<Stmt>\n";
+            case EXPSTMT: return expNode == null ? semicolonTerminal + "<Stmt>\n" :
+                expNode.toString() + semicolonTerminal + "<Stmt>\n";
+            default: return lValStmt.toString();
+        }
     }
 }

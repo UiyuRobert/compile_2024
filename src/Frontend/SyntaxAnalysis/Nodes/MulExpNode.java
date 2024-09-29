@@ -13,4 +13,13 @@ public class MulExpNode implements Node{
         this.unaryNode = unaryNode;
         this.unaryNodes = unaryNodes;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder(unaryNode.toString());
+        for (Map.Entry<Node, Token> entry : unaryNodes)
+            sb.append(entry.getValue().toString()).append(entry.getKey().toString());
+        sb.append("<MulExp>\n");
+        return sb.toString();
+    }
 }

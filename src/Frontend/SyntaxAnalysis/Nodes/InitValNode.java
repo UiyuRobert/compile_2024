@@ -31,4 +31,24 @@ public class InitValNode implements Node {
     public InitValNode(Token stringTerminal) {
         this.stringTerminal = stringTerminal;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        if (lbraceTerminal != null) {
+            sb.append(lbraceTerminal);
+            if (expNode != null) {
+                sb.append(expNode);
+                for (Map.Entry<Node, Token> entry : expNodes)
+                    sb.append(entry.getValue().toString()).append(entry.getKey().toString());
+            }
+            sb.append(rbraceTerminal);
+        } else if (expNodeOnly != null) {
+            sb.append(expNodeOnly);
+        } else {
+            sb.append(stringTerminal.toString());
+        }
+        sb.append("<InitVal>\n");
+        return sb.toString();
+    }
 }

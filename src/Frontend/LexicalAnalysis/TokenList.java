@@ -8,7 +8,7 @@ public class TokenList {
     private int currentIndex;
 
     public TokenList() {
-        tokens = new ArrayList<Token>();
+        tokens = new ArrayList<>();
         currentIndex = 0;
     }
 
@@ -24,7 +24,7 @@ public class TokenList {
     public String toString() {
         StringBuilder result = new StringBuilder();
         for (Token token : tokens) {
-            result.append(token.toString()).append("\n");
+            result.append(token.toString());
         }
         return result.toString();
     }

@@ -14,4 +14,13 @@ public class LOrExpNode implements Node {
         this.lAndExpNode = lAndExpNode;
         this.lAndExpNodes = lAndExpNodes;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder(lAndExpNode.toString());
+        for (Map.Entry<Node, Token> entry : lAndExpNodes)
+            sb.append(entry.getValue().toString()).append(entry.getKey().toString());
+        sb.append("<LOrExp>\n");
+        return sb.toString();
+    }
 }

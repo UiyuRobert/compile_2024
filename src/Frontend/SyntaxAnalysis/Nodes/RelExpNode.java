@@ -14,4 +14,13 @@ public class RelExpNode implements Node {
         this.addExpNode = addExpNode;
         this.addExpNodes = addExpNodes;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder(addExpNode.toString());
+        for (Map.Entry<Node, Token> entry : addExpNodes)
+            sb.append(entry.getValue().toString()).append(entry.getKey().toString());
+        sb.append("<RelExp>\n");
+        return sb.toString();
+    }
 }

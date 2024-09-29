@@ -9,4 +9,9 @@ public class BTypeNode implements Node {
     public BTypeNode(Token bType) {
         this.bTypeTerminal = bType;
     }
+
+    @Override
+    public String toString() {
+        return bTypeTerminal.toString();
+    }
 }

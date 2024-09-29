@@ -7,4 +7,9 @@ public class ExpNode implements Node {
     public ExpNode(AddExpNode addExpNode) {
         this.addExpNode = addExpNode;
     }
+
+    @Override
+    public String toString() {
+        return addExpNode.toString() + "<Exp>\n";
+    }
 }

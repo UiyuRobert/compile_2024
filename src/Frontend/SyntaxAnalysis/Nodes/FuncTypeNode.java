@@ -9,4 +9,9 @@ public class FuncTypeNode implements Node {
     public FuncTypeNode(Token funcTypeTerminal) {
         this.funcTypeTerminal = funcTypeTerminal;
     }
+
+    @Override
+    public String toString() {
+        return funcTypeTerminal.toString() + "<FuncType>\n";
+    }
 }

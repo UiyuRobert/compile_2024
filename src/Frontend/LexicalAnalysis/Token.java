@@ -20,7 +20,7 @@ public class Token {
 
     @Override
     public String toString() {
-        return kindCode.name() + " " + value;
+        return kindCode.name() + " " + value + '\n';
     }
 
 }

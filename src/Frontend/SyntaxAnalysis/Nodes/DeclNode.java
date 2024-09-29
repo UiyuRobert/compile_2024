@@ -2,10 +2,17 @@ package Frontend.SyntaxAnalysis.Nodes;
 
 /*-- 声明 --*/
 public class DeclNode implements Node {
-    /*-- 为常量声明或变量声明 --*/
-    private Node declNode;
+    /*-- Decl → ConstDecl | VarDecl  --*/
+    private Node constDeclNode = null;
+    private Node varDeclNode = null;
 
-    public DeclNode(Node declNode) {
-        this.declNode = declNode;
+    public DeclNode(Node constDeclNode, Node varDeclNode) {
+        this.constDeclNode = constDeclNode;
+        this.varDeclNode = varDeclNode;
+    }
+
+    @Override
+    public String toString() {
+        return constDeclNode == null ? varDeclNode.toString() : constDeclNode.toString();
     }
 }

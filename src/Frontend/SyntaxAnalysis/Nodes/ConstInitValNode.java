@@ -6,14 +6,14 @@ import java.util.Map;
 
 public class ConstInitValNode implements Node {
     /*-- ConstInitVal → ConstExp | '{' [ ConstExp { ',' ConstExp } ] '}' | StringConst --*/
-    private Node constExpNodeOnly;
+    private Node constExpNodeOnly = null;
 
-    private Token lBraceTerminal;
-    private Node constExpNode;
-    private List<Map.Entry<Node, Token>> constExpNodes;
-    private Token rBraceTerminal;
+    private Token lBraceTerminal = null;
+    private Node constExpNode = null;
+    private List<Map.Entry<Node, Token>> constExpNodes = null;
+    private Token rBraceTerminal = null;
 
-    private Token stringTerminal;
+    private Token stringTerminal = null;
 
     public ConstInitValNode(Node constExpNodeOnly) {
         this.constExpNodeOnly = constExpNodeOnly;
@@ -29,5 +29,20 @@ public class ConstInitValNode implements Node {
 
     public ConstInitValNode(Token stringTerminal) {
         this.stringTerminal = stringTerminal;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        if (constExpNodeOnly != null) sb.append(constExpNodeOnly);
+        else if (lBraceTerminal != null) {
+            sb.append(lBraceTerminal).append(constExpNode.toString());
+            for (Map.Entry<Node, Token> entry : constExpNodes) {
+                sb.append(entry.getValue().toString()).append(entry.getKey().toString());
+            }
+            sb.append(rBraceTerminal);
+        } else sb.append(stringTerminal.toString());
+        sb.append("<ConstInit>\n");
+        return sb.toString();
     }
 }

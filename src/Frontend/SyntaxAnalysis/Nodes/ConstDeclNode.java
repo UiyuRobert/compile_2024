@@ -20,4 +20,15 @@ public class ConstDeclNode implements Node{
         this.constDefNodes = constDefNodes;
         this.semicolonTerminal = semicolonTerminal;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(constTerminal.toString()).append(bType.toString()).append(constDefNode.toString());
+        for(Map.Entry<Node, Token> entry : constDefNodes){
+            sb.append(entry.getValue().toString()).append(entry.getKey().toString());
+        }
+        sb.append(semicolonTerminal.toString()).append("<ConstDecl>\n");
+        return sb.toString();
+    }
 }

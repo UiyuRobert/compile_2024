@@ -72,10 +72,8 @@ public class Parser {
 
     private DeclNode parseDecl() {
         /*-- Decl → ConstDecl | VarDecl --*/
-        Node declNode;
-        if (currentToken.getKindCode() == KindCode.CONSTTK) declNode = parseConstDecl();
-        else declNode = parseVarDecl();
-        return new DeclNode(declNode);
+        if (currentToken.getKindCode() == KindCode.CONSTTK) return new DeclNode(parseConstDecl(), null);
+        else return new DeclNode(null, parseVarDecl());
     }
 
     private BTypeNode parseBType() {

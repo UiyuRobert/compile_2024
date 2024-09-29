@@ -13,4 +13,8 @@ public class BlockItemNode implements Node {
         this.stmtNode = stmtNode;
     }
 
+    @Override
+    public String toString() {
+        return (declNode == null ? stmtNode.toString() : declNode.toString());
+    }
 }

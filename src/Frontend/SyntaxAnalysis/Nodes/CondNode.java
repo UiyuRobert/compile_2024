@@ -7,4 +7,9 @@ public class CondNode implements Node {
     public CondNode(Node lOrExpNode) {
         this.lOrExpNode = lOrExpNode;
     }
+
+    @Override
+    public String toString() {
+        return lOrExpNode.toString() + "<Cond>\n";
+    }
 }

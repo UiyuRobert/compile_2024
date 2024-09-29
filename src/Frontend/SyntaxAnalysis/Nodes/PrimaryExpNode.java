@@ -17,4 +17,16 @@ public class PrimaryExpNode implements Node {
     public PrimaryExpNode(Node content) {
         this.content = content;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        if (lparenTerminal != null) {
+            sb.append(lparenTerminal).append(content.toString()).append(rparenTerminal);
+        } else {
+            sb.append(content.toString());
+        }
+        sb.append("<PrimaryExp>\n");
+        return sb.toString();
+    }
 }

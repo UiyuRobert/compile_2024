@@ -14,4 +14,14 @@ public class BlockNode implements Node {
         this.blockItems = blockItems;
         this.rbraceTerminal = rbraceTerminal;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder(lbraceTerminal.toString());
+        for (Node blockItem : blockItems) {
+            sb.append(blockItem.toString());
+        }
+        sb.append(rbraceTerminal.toString()).append("<Block>\n");
+        return sb.toString();
+    }
 }

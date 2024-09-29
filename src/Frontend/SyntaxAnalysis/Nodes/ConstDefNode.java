@@ -21,4 +21,14 @@ public class ConstDefNode implements Node {
         this.constInitValNode = constInitValNode;
     }
 
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(identTerminal.toString());
+        if (lbracketTerminal != null) {
+            sb.append(lbracketTerminal).append(constExpNode.toString()).append(rbracketTerminal.toString());
+        }
+        sb.append(assignTerminal.toString()).append(constInitValNode.toString()).append("<ConstDef>\n");
+        return sb.toString();
+    }
 }

@@ -9,4 +9,9 @@ public class CharacterNode implements Node {
     public CharacterNode(Token charConstTerminal) {
         this.charConstTerminal = charConstTerminal;
     }
+
+    @Override
+    public String toString() {
+        return charConstTerminal.toString() + "<Character\n>";
+    }
 }

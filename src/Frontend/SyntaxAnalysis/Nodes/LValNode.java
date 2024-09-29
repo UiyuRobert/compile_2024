@@ -15,4 +15,14 @@ public class LValNode implements Node {
         this.rbracketTerminal = rbracketTerminal;
         this.expNode = expNode;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder(identTerminal.toString());
+        if (lbracketTerminal != null) {
+            sb.append(lbracketTerminal).append(expNode.toString()).append(rbracketTerminal);
+        }
+        sb.append("<LVal>\n");
+        return sb.toString();
+    }
 }

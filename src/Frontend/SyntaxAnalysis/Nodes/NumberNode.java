@@ -9,4 +9,9 @@ public class NumberNode implements Node {
     public NumberNode(Token intConstTerminal) {
         this.intConstTerminal = intConstTerminal;
     }
+
+    @Override
+    public String toString() {
+        return intConstTerminal.toString() + "<Number>\n";
+    }
 }

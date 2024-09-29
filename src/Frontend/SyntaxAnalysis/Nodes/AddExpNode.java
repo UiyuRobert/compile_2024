@@ -15,4 +15,15 @@ public class AddExpNode implements Node{
         this.mulExpNodes = mulExpNodes;
     }
 
+    @Override
+    public String toString(){
+        StringBuilder sb = new StringBuilder();
+        sb.append(mulExpNode.toString());
+        for(Map.Entry<Node, Token> entry : mulExpNodes){
+            sb.append(entry.getValue().toString());
+            sb.append(entry.getKey().toString());
+        }
+        sb.append("<AddExp>\n");
+        return sb.toString();
+    }
 }

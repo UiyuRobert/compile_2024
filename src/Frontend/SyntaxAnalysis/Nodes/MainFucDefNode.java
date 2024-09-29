@@ -18,4 +18,12 @@ public class MainFucDefNode implements Node{
         this.rparenTerminal = rparenTerminal;
         this.blockNode = blockNode;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder(intTerminal.toString());
+        sb.append(mainTerminal.toString()).append(lparenTerminal.toString()).append(rparenTerminal.toString());
+        sb.append(blockNode.toString()).append("<MainFuncDef>\n");
+        return sb.toString();
+    }
 }

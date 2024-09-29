@@ -14,4 +14,13 @@ public class FuncFParamsNode implements Node {
         this.funcFParam = funcFParam;
         this.funcFParamNodes = funcFParamNodes;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder(funcFParam.toString());
+        for (Map.Entry<Node, Token> entry : funcFParamNodes)
+            sb.append(entry.getValue().toString()).append(entry.getKey().toString());
+        sb.append("<FuncFParams>\n");
+        return sb.toString();
+    }
 }
