@@ -65,6 +65,10 @@ public class ErrorHandling {
         }
     }
 
+    public static void processSemanticError(String errCode, int errorLineNumber) {
+        addError(errCode, errorLineNumber);
+    }
+
     public static boolean isErrorOccurred() {
         return errorOccurred;
     }

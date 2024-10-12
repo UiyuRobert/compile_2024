@@ -14,6 +14,26 @@ public class CompUnitNode implements Node {
         this.mainFuncDefNode = mainFuncDefNode;
     }
 
+    public boolean hasDeclNodes() {
+        return declNodes != null && !declNodes.isEmpty();
+    }
+
+    public boolean hasFuncDefNodes() {
+        return funcDefNodes != null && !funcDefNodes.isEmpty();
+    }
+
+    public List<Node> getDeclNodes() {
+        return declNodes;
+    }
+
+    public List<Node> getFuncDefNodes() {
+        return funcDefNodes;
+    }
+
+    public MainFucDefNode getMainFuncDefNode() {
+        return (MainFucDefNode) mainFuncDefNode;
+    }
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();

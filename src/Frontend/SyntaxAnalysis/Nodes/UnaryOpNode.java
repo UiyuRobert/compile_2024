@@ -10,6 +10,10 @@ public class UnaryOpNode implements Node {
         this.opTerminal = opTerminal;
     }
 
+    public String getOp() {
+        return opTerminal.getValue();
+    }
+
     @Override
     public String toString() {
         return opTerminal.toString() + "<UnaryOp>\n";

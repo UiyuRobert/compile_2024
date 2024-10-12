@@ -2,6 +2,9 @@ package Frontend.SyntaxAnalysis.Nodes;
 
 import Frontend.LexicalAnalysis.Token;
 
+import java.util.AbstractMap;
+import java.util.Map;
+
 public class VarDefNode implements Node {
     /*-- VarDef → Ident [ '[' ConstExp ']' ] | Ident [ '[' ConstExp ']' ] '=' InitVal --*/
     private Token identTerminal;
@@ -28,6 +31,14 @@ public class VarDefNode implements Node {
         this.rbracketTerminal = rbracketTerminal;
         this.assignTerminal = assignTerminal;
         this.initValNode = initValNode;
+    }
+
+    public Map.Entry<String, Integer> getIdentifier() {
+        return identTerminal.getIdentifier();
+    }
+
+    public boolean isArray() {
+        return lbracketTerminal != null;
     }
 
     @Override

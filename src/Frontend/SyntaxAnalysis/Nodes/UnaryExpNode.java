@@ -2,7 +2,7 @@ package Frontend.SyntaxAnalysis.Nodes;
 
 import Frontend.LexicalAnalysis.Token;
 
-public class UnaryExpNode implements Node {
+public class UnaryExpNode implements Node, Factor {
     /*-- UnaryExp → PrimaryExp | Ident '(' [FuncRParams] ')' | UnaryOp UnaryExp --*/
     private Node primaryExpNode = null;
     private Token identTerminal = null;
@@ -26,6 +26,13 @@ public class UnaryExpNode implements Node {
     public UnaryExpNode(Node unaryOpNode, Node unaryExpNode) {
         this.unaryExpNode = unaryExpNode;
         this.unaryOpNode = unaryOpNode;
+    }
+
+    public int getValue() {
+        if (primaryExpNode != null) return ((PrimaryExpNode) primaryExpNode).getValue();
+        UnaryOpNode op = (UnaryOpNode) unaryOpNode;
+        UnaryExpNode exp = (UnaryExpNode) unaryExpNode;
+        return op.getOp().equals("+") ? exp.getValue() : -exp.getValue();
     }
 
     @Override

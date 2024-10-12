@@ -1,8 +1,12 @@
 package Frontend.SyntaxAnalysis.Nodes;
 
 import Frontend.LexicalAnalysis.Token;
+import Middle.Symbols.Symbol;
+
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class ConstDeclNode implements Node{
     /*-- ConstDecl → 'const' BType ConstDef { ',' ConstDef } ';' --*/
@@ -19,6 +23,20 @@ public class ConstDeclNode implements Node{
         this.constDefNode = constDefNode;
         this.constDefNodes = constDefNodes;
         this.semicolonTerminal = semicolonTerminal;
+    }
+
+    public String getType() {
+        return ((BTypeNode) bType).getSymbolType();
+    }
+
+    public ConstDefNode getConstDefNode() {
+        return (ConstDefNode) constDefNode;
+    }
+
+    public Set<ConstDefNode> getConstDefNodes() {
+        Set<ConstDefNode> constDefs = new HashSet<>();
+        constDefNodes.forEach(e -> constDefs.add((ConstDefNode) (e.getKey())));
+        return constDefs;
     }
 
     @Override

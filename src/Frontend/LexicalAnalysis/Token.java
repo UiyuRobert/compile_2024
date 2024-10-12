@@ -1,5 +1,8 @@
 package Frontend.LexicalAnalysis;
 
+import java.util.AbstractMap;
+import java.util.Map;
+
 /**
  * 语法单元，包括 单词类别码 和 单词的字符/字符串形式（单词值） 以及 单词所在的行号
  * */
@@ -20,6 +23,14 @@ public class Token {
 
     public int getLineNumber() {
         return lineNumber;
+    }
+
+    public String getValue() {
+        return value;
+    }
+
+    public Map.Entry<String, Integer> getIdentifier() {
+        return new AbstractMap.SimpleEntry<>(value, lineNumber);
     }
 
     @Override

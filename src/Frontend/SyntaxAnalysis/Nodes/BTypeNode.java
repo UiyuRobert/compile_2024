@@ -1,5 +1,6 @@
 package Frontend.SyntaxAnalysis.Nodes;
 
+import Frontend.LexicalAnalysis.KindCode;
 import Frontend.LexicalAnalysis.Token;
 
 public class BTypeNode implements Node {
@@ -8,6 +9,10 @@ public class BTypeNode implements Node {
 
     public BTypeNode(Token bType) {
         this.bTypeTerminal = bType;
+    }
+
+    public String getSymbolType() {
+        return bTypeTerminal.getKindCode() == KindCode.INTTK ? "Int" : "Char";
     }
 
     @Override

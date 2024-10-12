@@ -10,6 +10,10 @@ public class NumberNode implements Node {
         this.intConstTerminal = intConstTerminal;
     }
 
+    public int getValue() {
+        return Integer.parseInt(intConstTerminal.getValue());
+    }
+
     @Override
     public String toString() {
         return intConstTerminal.toString() + "<Number>\n";

@@ -11,6 +11,18 @@ public class DeclNode implements Node {
         this.varDeclNode = varDeclNode;
     }
 
+    public boolean isConstDecl() {
+        return constDeclNode != null;
+    }
+
+    public ConstDeclNode getConstDeclNode() {
+        return (ConstDeclNode) constDeclNode;
+    }
+
+    public VarDeclNode getVarDeclNode() {
+        return (VarDeclNode) varDeclNode;
+    }
+
     @Override
     public String toString() {
         return constDeclNode == null ? varDeclNode.toString() : constDeclNode.toString();

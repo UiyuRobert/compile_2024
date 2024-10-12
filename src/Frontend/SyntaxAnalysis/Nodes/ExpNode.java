@@ -1,6 +1,6 @@
 package Frontend.SyntaxAnalysis.Nodes;
 
-public class ExpNode implements Node {
+public class ExpNode implements Node, Factor {
     /*-- Exp → AddExp --*/
     private Node addExpNode;
 
@@ -8,8 +8,14 @@ public class ExpNode implements Node {
         this.addExpNode = addExpNode;
     }
 
+
     @Override
     public String toString() {
         return addExpNode.toString() + "<Exp>\n";
+    }
+
+    @Override
+    public int getValue() {
+        return ((AddExpNode) addExpNode).getValue();
     }
 }

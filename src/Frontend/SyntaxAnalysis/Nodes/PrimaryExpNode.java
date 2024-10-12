@@ -2,7 +2,7 @@ package Frontend.SyntaxAnalysis.Nodes;
 
 import Frontend.LexicalAnalysis.Token;
 
-public class PrimaryExpNode implements Node {
+public class PrimaryExpNode implements Node, Factor {
     /*-- PrimaryExp → '(' Exp ')' | LVal | Number | Character --*/
     private Token lparenTerminal = null;
     private Node content;
@@ -16,6 +16,14 @@ public class PrimaryExpNode implements Node {
 
     public PrimaryExpNode(Node content) {
         this.content = content;
+    }
+
+    @Override
+    public int getValue() {
+        if (content instanceof NumberNode) return ((NumberNode) content).getValue();
+        else if (content instanceof CharacterNode) return ((CharacterNode) content).getValue();
+        else if (content instanceof LValNode) return ((LValNode) content).getValue();
+        else return ((ExpNode) content).getValue();
     }
 
     @Override

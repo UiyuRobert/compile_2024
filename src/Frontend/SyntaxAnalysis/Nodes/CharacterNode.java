@@ -10,8 +10,13 @@ public class CharacterNode implements Node {
         this.charConstTerminal = charConstTerminal;
     }
 
+    public int getValue() {
+        return charConstTerminal.getValue().charAt(0);
+    }
+
     @Override
     public String toString() {
         return charConstTerminal.toString() + "<Character>\n";
     }
+
 }

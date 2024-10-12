@@ -1,6 +1,10 @@
 package Frontend.SyntaxAnalysis.Nodes;
 
 import Frontend.LexicalAnalysis.Token;
+import Middle.Symbols.ConstSymbol;
+import Middle.Symbols.Symbol;
+import java.util.Map;
+import static Middle.Visitor.curTable;
 
 public class LValNode implements Node {
     /*-- LVal → Ident ['[' Exp ']']  --*/
@@ -14,6 +18,13 @@ public class LValNode implements Node {
         this.lbracketTerminal = lbracketTerminal;
         this.rbracketTerminal = rbracketTerminal;
         this.expNode = expNode;
+    }
+
+    public int getValue() {
+        Map.Entry<String, Integer> entry = identTerminal.getIdentifier();
+        Symbol symbol = curTable.getSymbol(entry.getKey(), entry.getValue());
+        if (symbol == null) return 0;
+        return ((ConstSymbol)symbol).getValue();
     }
 
     @Override

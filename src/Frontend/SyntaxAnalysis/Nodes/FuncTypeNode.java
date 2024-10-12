@@ -10,6 +10,10 @@ public class FuncTypeNode implements Node {
         this.funcTypeTerminal = funcTypeTerminal;
     }
 
+    public String getFuncType(){
+        return funcTypeTerminal.getValue();
+    }
+
     @Override
     public String toString() {
         return funcTypeTerminal.toString() + "<FuncType>\n";

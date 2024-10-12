@@ -1,9 +1,12 @@
 package Frontend.SyntaxAnalysis.Nodes;
 
 import Frontend.LexicalAnalysis.Token;
+import Middle.Symbols.Symbol;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class VarDeclNode implements Node{
     /*-- VarDecl → BType VarDef { ',' VarDef } ';' --*/
@@ -18,6 +21,20 @@ public class VarDeclNode implements Node{
         this.varDefNode = varDefNode;
         this.varDefNodes = varDefNodes;
         this.semicolonTerminal = semicolonTerminal;
+    }
+
+    public String getType() {
+        return ((BTypeNode) bTypeNode).getSymbolType();
+    }
+
+    public VarDefNode getVarDef() {
+        return (VarDefNode) varDefNode;
+    }
+
+    public Set<VarDefNode> getVarDefs() {
+        Set<VarDefNode> varDefs = new HashSet<>();
+        varDefNodes.forEach(e -> varDefs.add((VarDefNode) (e.getKey())));
+        return varDefs;
     }
 
     @Override
