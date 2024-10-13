@@ -3,10 +3,7 @@ package Frontend.SyntaxAnalysis.Nodes;
 import Frontend.LexicalAnalysis.Token;
 import Middle.Symbols.Symbol;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class VarDeclNode implements Node{
     /*-- VarDecl → BType VarDef { ',' VarDef } ';' --*/
@@ -31,8 +28,8 @@ public class VarDeclNode implements Node{
         return (VarDefNode) varDefNode;
     }
 
-    public Set<VarDefNode> getVarDefs() {
-        Set<VarDefNode> varDefs = new HashSet<>();
+    public List<VarDefNode> getVarDefs() {
+        List<VarDefNode> varDefs = new ArrayList<>();
         varDefNodes.forEach(e -> varDefs.add((VarDefNode) (e.getKey())));
         return varDefs;
     }

@@ -27,6 +27,12 @@ public class LValNode implements Node {
         return ((ConstSymbol)symbol).getValue();
     }
 
+    public Map.Entry<String, Integer> getIdentifier() { return identTerminal.getIdentifier(); }
+
+    public boolean isArray() { return lbracketTerminal != null; }
+
+    public ExpNode getExp() { return (ExpNode) expNode; }
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder(identTerminal.toString());

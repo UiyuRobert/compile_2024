@@ -1,6 +1,8 @@
 package Frontend.SyntaxAnalysis.Nodes;
 
 import Frontend.LexicalAnalysis.Token;
+
+import java.util.ArrayList;
 import java.util.List;
 
 public class BlockNode implements Node {
@@ -13,6 +15,12 @@ public class BlockNode implements Node {
         this.lbraceTerminal = lbraceTerminal;
         this.blockItems = blockItems;
         this.rbraceTerminal = rbraceTerminal;
+    }
+
+    public List<BlockItemNode> getBlockItems() {
+        List<BlockItemNode> blockItemNodes = new ArrayList<>();
+        blockItems.forEach(item -> blockItemNodes.add((BlockItemNode) item));
+        return blockItemNodes;
     }
 
     @Override

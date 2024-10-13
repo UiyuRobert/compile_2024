@@ -2,6 +2,8 @@ package Frontend.SyntaxAnalysis.Nodes;
 
 import Frontend.LexicalAnalysis.Token;
 
+import java.util.Map;
+
 public class FuncDefNode implements Node{
     /*-- FuncDef → FuncType Ident '(' [FuncFParams] ')' Block --*/
     private Node funcTypeNode;
@@ -19,6 +21,26 @@ public class FuncDefNode implements Node{
         this.funcFParams = funcFParams;
         this.rparenTerminal = rparenTerminal;
         this.blockNode = blockNode;
+    }
+
+    public FuncTypeNode getFuncTypeNode() {
+        return (FuncTypeNode) funcTypeNode;
+    }
+
+    public Map.Entry<String, Integer> getIdentifier() {
+        return identTerminal.getIdentifier();
+    }
+
+    public boolean hasParams() {
+        return (funcFParams != null);
+    }
+
+    public FuncFParamsNode getFuncFParams() {
+        return (FuncFParamsNode) funcFParams;
+    }
+
+    public BlockNode getFuncDefBlock() {
+        return (BlockNode) funcFParams;
     }
 
     @Override

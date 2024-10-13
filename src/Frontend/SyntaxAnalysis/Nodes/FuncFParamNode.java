@@ -2,6 +2,9 @@ package Frontend.SyntaxAnalysis.Nodes;
 
 import Frontend.LexicalAnalysis.Token;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class FuncFParamNode implements Node {
     /*-- FuncFParam → BType Ident ['[' ']'] --*/
     private Node bTypeNode;
@@ -14,6 +17,14 @@ public class FuncFParamNode implements Node {
         this.identTerminal = identTerminal;
         this.lbracketTerminal = lbracketTerminal;
         this.rbracketTerminal = rbracketTerminal;
+    }
+
+    public Object[] getArg() {
+        Object[] arg = new Object[3];
+        arg[0] = ((BTypeNode)bTypeNode).getSymbolType(); // 类型
+        arg[1] = identTerminal.getIdentifier(); // 标识符
+        arg[2] = lbracketTerminal != null; // 是不是数组类型
+        return arg;
     }
 
     @Override

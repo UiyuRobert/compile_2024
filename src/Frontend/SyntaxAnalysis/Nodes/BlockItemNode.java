@@ -13,6 +13,18 @@ public class BlockItemNode implements Node {
         this.stmtNode = stmtNode;
     }
 
+    public boolean isStmt() {
+        return stmtNode != null;
+    }
+
+    public DeclNode getDecl() {
+        return declNode;
+    }
+
+    public StmtNode getStmt() {
+        return stmtNode;
+    }
+
     @Override
     public String toString() {
         return (declNode == null ? stmtNode.toString() : declNode.toString());

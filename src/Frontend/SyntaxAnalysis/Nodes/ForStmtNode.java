@@ -14,6 +14,10 @@ public class ForStmtNode implements Node {
         this.expNode = expNode;
     }
 
+    public LValNode getLVal() { return (LValNode) lValNode; }
+
+    public ExpNode getExp() { return (ExpNode) expNode; }
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder(lValNode.toString());

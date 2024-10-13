@@ -3,10 +3,7 @@ package Frontend.SyntaxAnalysis.Nodes;
 import Frontend.LexicalAnalysis.Token;
 import Middle.Symbols.Symbol;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class ConstDeclNode implements Node{
     /*-- ConstDecl → 'const' BType ConstDef { ',' ConstDef } ';' --*/
@@ -33,8 +30,8 @@ public class ConstDeclNode implements Node{
         return (ConstDefNode) constDefNode;
     }
 
-    public Set<ConstDefNode> getConstDefNodes() {
-        Set<ConstDefNode> constDefs = new HashSet<>();
+    public List<ConstDefNode> getConstDefNodes() {
+        List<ConstDefNode> constDefs = new ArrayList<>();
         constDefNodes.forEach(e -> constDefs.add((ConstDefNode) (e.getKey())));
         return constDefs;
     }

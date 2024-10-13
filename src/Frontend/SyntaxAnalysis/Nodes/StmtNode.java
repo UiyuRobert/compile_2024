@@ -2,6 +2,7 @@ package Frontend.SyntaxAnalysis.Nodes;
 
 import Frontend.LexicalAnalysis.Token;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -20,7 +21,7 @@ public class StmtNode implements Node {
     /*-- LVal '=' Exp ';'
          LVal '=' 'getint''('')'';'
          LVal '=' 'getchar''('')''; --*/
-    enum Kind {
+    public enum Kind {
         IFSTMT,
         FORSTMT,
         BOCSTMT,
@@ -104,6 +105,12 @@ public class StmtNode implements Node {
             this.elseStmtNode = elseStmtNode;
         }
 
+        public boolean hasElseStmt(){ return elseStmtNode != null; }
+
+        public StmtNode getIfPart() { return (StmtNode) stmtNode; }
+
+        public StmtNode getElsePart() { return (StmtNode) elseStmtNode; }
+
         @Override
         public String toString() {
             StringBuilder sb = new StringBuilder(ifTerminal.toString());
@@ -141,6 +148,20 @@ public class StmtNode implements Node {
             this.stmtNode = stmtNode;
         }
 
+        public boolean hasInFor1() { return forStmtNode1 != null; }
+
+        public boolean hasInFor2() { return forStmtNode2 != null; }
+
+        public boolean hasCondInFor() { return conditionNode != null; }
+
+        public CondNode getCondInFor() { return (CondNode) conditionNode; }
+
+        public ForStmtNode getInFor1() { return (ForStmtNode) forStmtNode1; }
+
+        public ForStmtNode getInFor2() { return (ForStmtNode) forStmtNode2; }
+
+        public StmtNode getStmtIn4Stmt() { return (StmtNode) stmtNode; }
+
         @Override
         public String toString() {
             StringBuilder sb = new StringBuilder(forTerminal.toString());
@@ -173,6 +194,16 @@ public class StmtNode implements Node {
             this.expNodes = expNodes;
             this.rparenTerminal = rparenTerminal;
             this.semicolonTerminal = semicolonTerminal;
+        }
+
+        public int getLineNum () { return printfTerminal.getLineNumber(); }
+
+        public String getStringConst() { return stringTerminal.getValue(); }
+
+        public List<ExpNode> getExps() {
+            List<ExpNode> exps = new ArrayList<>();
+            expNodes.forEach(e -> exps.add((ExpNode) e.getKey()));
+            return exps;
         }
 
         @Override
@@ -253,6 +284,37 @@ public class StmtNode implements Node {
         this.semicolonTerminal = semicolonTerminal;
         this.kind = Kind.RETURNSTMT;
     }
+
+    public Kind getKind() { return kind; }
+
+    public BlockNode getBlock() { return (BlockNode) blockNode; }
+
+    public StmtNode getIfStmt() { return ifStmt.getIfPart(); }
+
+    public StmtNode getElseStmt() {
+        if (ifStmt.hasElseStmt()) return ifStmt.getElsePart();
+        return null;
+    }
+
+    public boolean hasInFor1() { return inForStmt.hasInFor1(); }
+
+    public boolean hasInFor2() { return inForStmt.hasInFor2(); }
+
+    public boolean hasCondInFor() { return inForStmt.hasCondInFor(); }
+
+    public ForStmtNode getInFor1() { return inForStmt.getInFor1(); }
+
+    public ForStmtNode getInFor2() { return inForStmt.getInFor2(); }
+
+    public CondNode getCondInFor() { return inForStmt.getCondInFor(); }
+
+    public StmtNode get4Stmt() { return inForStmt.getStmtIn4Stmt(); }
+
+    public int getPrintLineNum() { return printfStmt.getLineNum(); }
+
+    public String getPrintForm() { return printfStmt.getStringConst(); }
+
+    public List<ExpNode> getPrintExp() { return printfStmt.getExps(); }
 
     @Override
     public String toString() {
