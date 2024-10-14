@@ -23,18 +23,6 @@ public class SymbolTable {
         this.scopeNumber = scopeNumber;
     }
 
-    public boolean hasSymbol(String symbolName, int lineNumber) {
-        SymbolTable table = curTable;
-        while (!table.hasSymbolCur(symbolName) && table.getParent() != null) {
-            table = table.getParent();
-        }
-        if (!table.hasSymbolCur(symbolName)) {
-            ErrorHandling.processSemanticError("c", lineNumber);
-            return false;
-        }
-        return true;
-    }
-
     public Symbol getSymbol(String symbolName, int lineNumber) {
         SymbolTable table = curTable;
         while (!table.hasSymbolCur(symbolName) && table.getParent() != null) {

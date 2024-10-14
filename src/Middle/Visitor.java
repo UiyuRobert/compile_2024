@@ -1,6 +1,7 @@
 package Middle;
 
 import ErrorHandling.ErrorHandling;
+import Frontend.LexicalAnalysis.Token;
 import Frontend.SyntaxAnalysis.Nodes.*;
 import Middle.Symbols.*;
 import java.util.ArrayList;
@@ -22,13 +23,13 @@ public class Visitor {
     private boolean isRename(String name, int lineNumber) {
         boolean ret = curTable.hasSymbolCur(name);
         if (ret)
-            /* TODO */ // 错误处理
             ErrorHandling.processSemanticError("b", lineNumber);
         return ret;
     }
 
     private boolean canBeUpdate(String name, int lineNumber) {
-        return curTable.hasSymbol(name, lineNumber);
+        Symbol symbol = curTable.getSymbol(name, lineNumber);
+        return symbol != null && !(symbol instanceof ConstSymbol);
     }
 
     private Symbol.Type calType(String bType, String from, boolean isArray) {
@@ -124,7 +125,7 @@ public class Visitor {
 
     private void visitIfStmt(StmtNode ifStmt) {
         /*-- 'if' '(' Cond ')' Stmt [ 'else' Stmt ] --*/
-        /* TODO */ // Cond 部分
+        visitCond(ifStmt.getIfCond());
         visitStmt(ifStmt.getIfStmt());
         if(ifStmt.getElseStmt() != null) visitStmt(ifStmt.getElseStmt());
     }
@@ -161,25 +162,40 @@ public class Visitor {
         List<ExpNode> exps = printStmt.getPrintExp();
         if (forms.size() != exps.size())
             ErrorHandling.processSemanticError("l", printStmt.getPrintLineNum());
+        for (ExpNode exp : exps)
+            visitExp(exp);
     }
 
     private void visitBOCStmt(StmtNode bocStmt) {
         /*-- 'break' ';' | 'continue' ';' --*/ // 只能出现在 for 语句块中
+        if (inFor == 0) ErrorHandling.processSemanticError("m", bocStmt.getBOCLineNum());
+
     }
 
     private void visitExpStmt(StmtNode expStmt) {
         /*-- [Exp] ';' --*/
+        if (expStmt.hasExp()) visitExp(expStmt.getExp());
     }
 
     private void visitFuncStmt(StmtNode funcStmt) {
         /*-- LVal '=' 'getint''('')'';' |  LVal '=' 'getchar''('')''; --*/
+        Map.Entry<String, Integer> ident = visitLVal(funcStmt.getLVal());
+        if (canBeUpdate(ident.getKey(), ident.getValue())) {
+            /* TODO */
+        }
     }
 
     private void visitAssignStmt(StmtNode assignStmt) {
         /*-- LVal '=' Exp ';' --*/
+        Map.Entry<String, Integer> ident = visitLVal(assignStmt.getLVal());
+        visitExp(assignStmt.getAssignExp());
+        if (canBeUpdate(ident.getKey(), ident.getValue())) {
+            /* TODO */
+        }
     }
 
     private void visitReturnStmt(StmtNode returnStmt) {
+        /*-- 'return' [Exp] ';' --*/
 
     }
 
@@ -288,10 +304,79 @@ public class Visitor {
     }
 
     private void visitCond(CondNode cond) {
+        /*-- Cond → LOrExp --*/
+        visitLOrExp(cond.getLOrExp());
+    }
 
+    private void visitLOrExp(LOrExpNode lOrExp) {
+        /*-- LOrExp → LAndExp | LOrExp '||' LAndExp --*/
+        for (LAndExpNode lAndExp : lOrExp.getLAndExps()) {
+            visitLAndExp(lAndExp);
+        }
+    }
+
+    private void visitLAndExp(LAndExpNode lAndExp) {
+        /*-- LAndExp → EqExp | LAndExp '&&' EqExp --*/
+        for (EqExpNode eqExp : lAndExp.getEqExps()) {
+            visitEqExp(eqExp);
+        }
+    }
+
+    private void visitEqExp(EqExpNode eqExp) {
+        /*-- EqExp → RelExp | EqExp ('==' | '!=') RelExp --*/
+        visitRelExp(eqExp.getRelExp());
+        for (Map.Entry<RelExpNode, String> entry : eqExp.getRelExps()) {
+            visitRelExp(entry.getKey());
+        }
+    }
+
+    private void visitRelExp(RelExpNode relExp) {
+        /*-- RelExp → AddExp | RelExp ('<' | '>' | '<=' | '>=') AddExp --*/
+        visitAddExp(relExp.getAddExp());
+        for (Map.Entry<AddExpNode, String> entry : relExp.getAddExps()) {
+            visitAddExp(entry.getKey());
+        }
     }
 
     private void visitExp(ExpNode exp) {
+        /*-- Exp → AddExp --*/
+        visitAddExp(exp.getAddExpNode());
+    }
+
+    private void visitAddExp(AddExpNode addExp) {
+        /*-- AddExp → MulExp | AddExp ('+' | '−') MulExp --*/
+        visitMulExp(addExp.getMulExp());
+        for (Map.Entry<MulExpNode, String> entry: addExp.getMulExpExps()) {
+            visitMulExp(entry.getKey());
+            /* TODO */
+        }
+    }
+
+    private void visitMulExp(MulExpNode mulExp) {
+        /*-- MulExp → UnaryExp | MulExp ('*' | '/' | '%') UnaryExp --*/
+        visitUnaryExp(mulExp.getUnaryExp());
+        for (Map.Entry<UnaryExpNode, String> entry : mulExp.getUnaryExps()) {
+            visitUnaryExp(entry.getKey());
+            /* TODO */
+        }
+    }
+
+    private void visitUnaryExp(UnaryExpNode unaryExp) {
+        /*-- UnaryExp → PrimaryExp | Ident '(' [FuncRParams] ')' | UnaryOp UnaryExp --*/
+
+    }
+
+    private void visitPrimaryExp(PrimaryExpNode primaryExp) {
+        /*-- PrimaryExp → '(' Exp ')' | LVal | Number | Character --*/
+        Node content = primaryExp.getContent();
+        if (content instanceof ExpNode) visitExp((ExpNode) content);
+        else if (content instanceof LValNode) visitLVal((LValNode) content);
+        else {
+            // 字面量
+        }
+    }
+
+    private void visitFuncRef(Token ident, FuncRParamsNode funcRParams) {
 
     }
 

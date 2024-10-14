@@ -2,6 +2,7 @@ package Frontend.SyntaxAnalysis.Nodes;
 
 import Frontend.LexicalAnalysis.Token;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -13,6 +14,13 @@ public class LOrExpNode implements Node {
     public LOrExpNode(Node lAndExpNode, List<Map.Entry<Node, Token>> lAndExpNodes) {
         this.lAndExpNode = lAndExpNode;
         this.lAndExpNodes = lAndExpNodes;
+    }
+
+    public List<LAndExpNode> getLAndExps() {
+        List<LAndExpNode> lAndExpExps = new ArrayList<>();
+        lAndExpExps.add((LAndExpNode) lAndExpNode);
+        lAndExpNodes.forEach(e -> lAndExpExps.add((LAndExpNode) e.getKey()));
+        return lAndExpExps;
     }
 
     @Override

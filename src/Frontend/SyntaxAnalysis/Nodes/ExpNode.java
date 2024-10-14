@@ -8,6 +8,8 @@ public class ExpNode implements Node, Factor {
         this.addExpNode = addExpNode;
     }
 
+    public AddExpNode getAddExpNode() { return (AddExpNode) addExpNode; }
+
 
     @Override
     public String toString() {

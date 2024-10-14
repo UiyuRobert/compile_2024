@@ -25,9 +25,7 @@ public class Token {
         return lineNumber;
     }
 
-    public String getValue() {
-        return value;
-    }
+    public String getValue() { return value; }
 
     public Map.Entry<String, Integer> getIdentifier() {
         return new AbstractMap.SimpleEntry<>(value, lineNumber);

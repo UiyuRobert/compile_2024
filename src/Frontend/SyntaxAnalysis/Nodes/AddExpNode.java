@@ -3,6 +3,8 @@ package Frontend.SyntaxAnalysis.Nodes;
 import Frontend.LexicalAnalysis.KindCode;
 import Frontend.LexicalAnalysis.Token;
 
+import java.util.AbstractMap;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -14,6 +16,16 @@ public class AddExpNode implements Node, Factor {
     public AddExpNode(Node mulExpNode, List<Map.Entry<Node, Token>> mulExpNodes) {
         this.mulExpNode = mulExpNode;
         this.mulExpNodes = mulExpNodes;
+    }
+
+    public MulExpNode getMulExp() { return (MulExpNode) mulExpNode; }
+
+    public List<Map.Entry<MulExpNode, String>> getMulExpExps() {
+        List<Map.Entry<MulExpNode, String>> mulExpExps = new ArrayList<>();
+        mulExpNodes.forEach(
+                e -> mulExpExps.add(new AbstractMap.SimpleEntry<>((MulExpNode) e.getKey(), e.getValue().getValue()))
+        );
+        return mulExpExps;
     }
 
     @Override

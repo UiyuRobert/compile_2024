@@ -2,6 +2,9 @@ package Frontend.SyntaxAnalysis.Nodes;
 
 import Frontend.LexicalAnalysis.Token;
 
+import java.util.AbstractMap;
+import java.util.Map;
+
 public class UnaryExpNode implements Node, Factor {
     /*-- UnaryExp → PrimaryExp | Ident '(' [FuncRParams] ')' | UnaryOp UnaryExp --*/
     private Node primaryExpNode = null;
@@ -26,6 +29,22 @@ public class UnaryExpNode implements Node, Factor {
     public UnaryExpNode(Node unaryOpNode, Node unaryExpNode) {
         this.unaryExpNode = unaryExpNode;
         this.unaryOpNode = unaryOpNode;
+    }
+
+    public boolean isPrimaryExp() { return primaryExpNode != null; }
+
+    public boolean isFuncRef() { return identTerminal != null; }
+
+    public boolean isOpUnary() { return unaryOpNode != null; }
+
+    public PrimaryExpNode getPrimaryExp() { return (PrimaryExpNode) primaryExpNode; }
+
+    public Map.Entry<Token, FuncRParamsNode> getFuncRef() {
+        return new AbstractMap.SimpleEntry<>(identTerminal, (FuncRParamsNode) funcRParamsNode);
+    }
+
+    public Map.Entry<UnaryExpNode, String> getOpUnary() {
+        return new AbstractMap.SimpleEntry<>((UnaryExpNode) unaryExpNode, ((UnaryOpNode)unaryOpNode).getOp());
     }
 
     public int getValue() {

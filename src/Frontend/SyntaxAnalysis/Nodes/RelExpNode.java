@@ -2,6 +2,8 @@ package Frontend.SyntaxAnalysis.Nodes;
 
 import Frontend.LexicalAnalysis.Token;
 
+import java.util.AbstractMap;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -13,6 +15,16 @@ public class RelExpNode implements Node {
     public RelExpNode(Node addExpNode, List<Map.Entry<Node, Token>> addExpNodes) {
         this.addExpNode = addExpNode;
         this.addExpNodes = addExpNodes;
+    }
+
+    public AddExpNode getAddExp() { return (AddExpNode) addExpNode; }
+
+    public List<Map.Entry<AddExpNode, String>> getAddExps() {
+        List<Map.Entry<AddExpNode, String>> addExps = new ArrayList<>();
+        addExpNodes.forEach(e ->
+                addExps.add(new AbstractMap.SimpleEntry<>((AddExpNode) e.getKey(), e.getValue().getValue()))
+        );
+        return addExps;
     }
 
     @Override

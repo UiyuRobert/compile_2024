@@ -1,7 +1,6 @@
 package Frontend.SyntaxAnalysis.Nodes;
 
 import Frontend.LexicalAnalysis.Token;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -60,6 +59,10 @@ public class StmtNode implements Node {
             this.semicolonTerminal = semicolonTerminal;
         }
 
+        public LValNode getLValNode(){ return (LValNode) lValNode; }
+
+        public ExpNode getExpNode(){ return (ExpNode) expNode_; }
+
         @Override
         public String toString() {
             StringBuilder sb = new StringBuilder(lValNode.toString());
@@ -106,6 +109,8 @@ public class StmtNode implements Node {
         }
 
         public boolean hasElseStmt(){ return elseStmtNode != null; }
+
+        public CondNode getIfCond() { return (CondNode) conditionNode; }
 
         public StmtNode getIfPart() { return (StmtNode) stmtNode; }
 
@@ -224,6 +229,8 @@ public class StmtNode implements Node {
         this.kind = Kind.ASSIGNSTMT;
     }
 
+    public ExpNode getAssignExp() { return lValStmt.getExpNode(); }
+
     public StmtNode(Node lValNode, Token assignTerminal, Token getFuncTerminal,
                     Token lparenTerminal, Token rparenTerminal, Token semicolonTerminal){
         /*-- LVal '=' 'getint''('')'';' |  LVal '=' 'getchar''('')''; --*/
@@ -231,6 +238,8 @@ public class StmtNode implements Node {
                 rparenTerminal, semicolonTerminal);
         this.kind = Kind.FUNCSTMT;
     }
+
+    public LValNode getLVal() { return lValStmt.getLValNode(); }
 
     public StmtNode(Token printfTerminal, Token lparenTerminal, Token stringTerminal,
                     List<Map.Entry<Node, Token>> expNodes, Token rparenTerminal, Token semicolonTerminal) {
@@ -257,6 +266,8 @@ public class StmtNode implements Node {
         this.kind = Kind.IFSTMT;
     }
 
+    public CondNode getIfCond() { return ifStmt.getIfCond(); }
+
     public StmtNode(Node blockNode) {
         /*-- Block --*/
         this.blockNode = blockNode;
@@ -270,12 +281,18 @@ public class StmtNode implements Node {
         this.kind = Kind.EXPSTMT;
     }
 
+    public boolean hasExp() { return expNode != null; }
+
+    public ExpNode getExp() { return (ExpNode) expNode; }
+
     public StmtNode(Token breakOrContinueTerminal, Token semicolonTerminal) {
         /*-- 'break' ';' | 'continue' ';' --*/
         this.breakOrContinueTerminal = breakOrContinueTerminal;
         this.semicolonTerminal = semicolonTerminal;
         this.kind = Kind.BOCSTMT;
     }
+
+    public int getBOCLineNum() { return breakOrContinueTerminal.getLineNumber(); }
 
     public StmtNode(Token returnTerminal, Node expNode, Token semicolonTerminal) {
         /*-- 'return' [Exp] ';' --*/

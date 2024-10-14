@@ -18,6 +18,8 @@ public class PrimaryExpNode implements Node, Factor {
         this.content = content;
     }
 
+    public Node getContent() { return content; }
+
     @Override
     public int getValue() {
         if (content instanceof NumberNode) return ((NumberNode) content).getValue();

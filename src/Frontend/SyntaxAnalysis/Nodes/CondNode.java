@@ -8,6 +8,8 @@ public class CondNode implements Node {
         this.lOrExpNode = lOrExpNode;
     }
 
+    public LOrExpNode getLOrExp() { return (LOrExpNode) lOrExpNode;}
+
     @Override
     public String toString() {
         return lOrExpNode.toString() + "<Cond>\n";
