@@ -37,7 +37,8 @@ public class SymbolTable {
 
     public void addSymbol(Symbol symbol) {
         symbols.put(symbol.getName(), symbol);
-        record.add(scopeNumber + ' ' + symbol.getName() + ' ' + symbol.getType() + '\n');
+        record.add(this.scopeNumber + " " + symbol.getName() + ' ' + symbol.getType());
+        System.out.println(this.scopeNumber + " " + symbol.getName() + ' ' + symbol.getType());
     }
 
     public void fillFuncParams(String symbolName, List<Symbol> args) {

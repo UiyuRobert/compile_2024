@@ -37,7 +37,10 @@ public class InitValNode implements Node {
 
     public boolean isStrInit() { return (stringTerminal != null); }
 
-    public String getStrInit() { return stringTerminal.getValue(); }
+    public String getStrInit() {
+        return stringTerminal.getValue().
+                substring(1, stringTerminal.getValue().length() - 1);
+    }
 
     public List<ExpNode> getExpInits() {
         List<ExpNode> exps = new ArrayList<>();

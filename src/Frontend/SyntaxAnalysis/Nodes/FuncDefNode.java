@@ -40,7 +40,7 @@ public class FuncDefNode implements Node{
     }
 
     public BlockNode getFuncDefBlock() {
-        return (BlockNode) funcFParams;
+        return (BlockNode) blockNode;
     }
 
     @Override

@@ -23,8 +23,9 @@ public class Parser {
         currentToken = this.tokens.get(index);
     }
 
-    public void parse() {
+    public CompUnitNode parse() {
         compUnitNode = parseCompUnit();
+        return (CompUnitNode) compUnitNode;
     }
 
     public String getParseResult() {

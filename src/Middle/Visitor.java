@@ -332,7 +332,9 @@ public class Visitor {
         int[] ret = new int[length];
         if (initVal.isStrInit()) {
             String str = initVal.getStrInit();
-            for (int i = 0; i < str.length(); i++) ret[i] = str.charAt(i);
+            for (int i = 0; i < str.length(); i++) {
+                ret[i] = str.charAt(i);
+            }
             for (int i = str.length(); i < length; i++) ret[i] = 0;
             return ret;
         }
