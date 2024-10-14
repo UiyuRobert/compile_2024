@@ -35,7 +35,7 @@ public class ConstInitValNode implements Node {
 
     public boolean isStrVal() { return stringTerminal != null; }
 
-    public String getStrInit() { return stringTerminal.getValue(); }
+    public String getStrInit() { return stringTerminal.getValue().substring(1, stringTerminal.getValue().length() - 1); }
 
     public boolean isConstOnly() { return constExpNodeOnly != null; }
 
@@ -45,7 +45,8 @@ public class ConstInitValNode implements Node {
 
     public List<ConstExpNode> getConstExps() {
         List<ConstExpNode> constExps = new ArrayList<>();
-        constExps.add((ConstExpNode) constExpNode);
+        if (constExpNode != null)
+            constExps.add((ConstExpNode) constExpNode);
         constExpNodes.forEach(e -> constExps.add((ConstExpNode) e.getKey()));
         return constExps;
     }

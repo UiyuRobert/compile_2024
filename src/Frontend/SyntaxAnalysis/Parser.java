@@ -56,6 +56,15 @@ public class Parser {
         return tokens.get(index + num);
     }
 
+    private boolean isExp(KindCode kind) {
+        KindCode[] expFirst = new KindCode[]{KindCode.PLUS, KindCode.MINU,
+                KindCode.IDENFR, KindCode.LPARENT, KindCode.INTCON, KindCode.CHRCON,};
+        for (KindCode first : expFirst)
+            if (kind == first)
+                return true;
+        return false;
+    }
+
     /*---------------------------------------------- COMPUNIT PART ----------------------------------------------*/
 
     private CompUnitNode parseCompUnit() {
@@ -216,7 +225,8 @@ public class Parser {
         Token identTerminal = match(new KindCode[]{KindCode.IDENFR});
         Token lparenTerminal = match(new KindCode[]{KindCode.LPARENT});
         Node funcFParams = null;
-        if (currentToken.getKindCode() != KindCode.RPARENT) {
+        if (currentToken.getKindCode() != KindCode.RPARENT
+                && currentToken.getKindCode() != KindCode.LBRACE) {
             funcFParams = parseFuncFParams();
         }
         Token rparenTerminal = match(new KindCode[]{KindCode.RPARENT});
@@ -253,6 +263,18 @@ public class Parser {
             rbracketTerminal = match(new KindCode[]{KindCode.RBRACK});
         }
         return new FuncFParamNode(bTypeNode, identTerminal, lbracketTerminal, rbracketTerminal);
+    }
+
+    private FuncRParamsNode parseFuncRParams() {
+        /*-- FuncRParams → Exp { ',' Exp } --*/
+        Node expNode = parseExp();
+        List<Map.Entry<Node, Token>> expNodes = new ArrayList<>();
+        while (currentToken.getKindCode() == KindCode.COMMA) {
+            Token commaTerminal = match(new KindCode[]{KindCode.COMMA});
+            Node expNode_ = parseExp();
+            expNodes.add(new AbstractMap.SimpleImmutableEntry<>(expNode_, commaTerminal));
+        }
+        return new FuncRParamsNode(expNode, expNodes);
     }
 
     private MainFucDefNode parseMainFuncDef() {
@@ -473,18 +495,6 @@ public class Parser {
         return new UnaryOpNode(unaryOpTerminal);
     }
 
-    private FuncRParamsNode parseFuncRParams() {
-        /*-- FuncRParams → Exp { ',' Exp } --*/
-        Node expNode = parseExp();
-        List<Map.Entry<Node, Token>> expNodes = new ArrayList<>();
-        while (currentToken.getKindCode() == KindCode.COMMA) {
-            Token commaTerminal = match(new KindCode[]{KindCode.COMMA});
-            Node expNode_ = parseExp();
-            expNodes.add(new AbstractMap.SimpleImmutableEntry<>(expNode_, commaTerminal));
-        }
-        return new FuncRParamsNode(expNode, expNodes);
-    }
-
     private UnaryExpNode parseUnaryExp() {
         /*-- UnaryExp → PrimaryExp | Ident '(' [FuncRParams] ')' | UnaryOp UnaryExp --*/
         if (currentToken.getKindCode() == KindCode.IDENFR && lookAhead(1)!= null
@@ -493,7 +503,9 @@ public class Parser {
             Token identTerminal = match(new KindCode[]{KindCode.IDENFR});
             Token lparenTerminal = match(new KindCode[]{KindCode.LPARENT});
             FuncRParamsNode funcRParamsNode = null;
-            if (currentToken.getKindCode() != KindCode.RPARENT) funcRParamsNode = parseFuncRParams();
+
+            if (isExp(currentToken.getKindCode())) funcRParamsNode = parseFuncRParams();
+
             Token rparenTerminal = match(new KindCode[]{KindCode.RPARENT});
             return new UnaryExpNode(identTerminal, lparenTerminal, funcRParamsNode, rparenTerminal);
         } else if (isUnaryOp(currentToken)) {
@@ -606,9 +618,14 @@ public class Parser {
     }
 
     public boolean hasAssignLater() {
-        for (int i = 0;;++i) {
-            if (lookAhead(i) == null || lookAhead(i).getKindCode() == KindCode.SEMICN) return false;
+        boolean isArray = false;
+        for (int i = 1;;++i) {
+            if (lookAhead(i) == null || lookAhead(i).getKindCode() == KindCode.SEMICN ) return false;
+            else if (lookAhead(i).getKindCode() == KindCode.LBRACK) isArray = true;
+            else if (lookAhead(i).getKindCode() == KindCode.RBRACK) isArray = false;
             else if (lookAhead(i).getKindCode() == KindCode.ASSIGN) return true;
+            if (!isArray && (lookAhead(i).getKindCode() == KindCode.IDENFR
+                    || lookAhead(i).getKindCode() == KindCode.RBRACE)) return false;
         }
     }
 

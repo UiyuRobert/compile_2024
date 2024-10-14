@@ -27,9 +27,11 @@ public class Compiler {
         Lexer lexer = new Lexer(fileReader);
         /*--设置 TokenList--*/
         TokenList tokenList = createTokenList(lexer);
+        // System.out.println(tokenList.toString());
         /*-- 启动 Parser --*/
         Parser parser = new Parser(tokenList);
         CompUnitNode compUnit = parser.parse();
+        // System.out.println(parser.getParseResult());
         /*-- 语法分析 --*/
         Visitor visitor = new Visitor();
         visitor.visit(compUnit);

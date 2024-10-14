@@ -31,6 +31,7 @@ public class Visitor {
         boolean ret = curTable.hasSymbolCur(name);
         if (ret)
             ErrorHandling.processSemanticError("b", lineNumber);
+
         return ret;
     }
 
@@ -153,6 +154,7 @@ public class Visitor {
 
     private void visitIfStmt(StmtNode ifStmt) {
         /*-- 'if' '(' Cond ')' Stmt [ 'else' Stmt ] --*/
+        isFinalStmt = false;
         visitCond(ifStmt.getIfCond());
         visitStmt(ifStmt.getIfStmt());
         if(ifStmt.getElseStmt() != null) visitStmt(ifStmt.getElseStmt());
@@ -160,6 +162,7 @@ public class Visitor {
 
     private void visitForStmt(StmtNode forStmt) {
         /*-- 'for' '(' [ForStmt] ';' [Cond] ';' [ForStmt] ')' Stmt --*/
+        isFinalStmt = false;
         ++inFor;
         if (forStmt.hasInFor1()) visitInForStmt(forStmt.getInFor1());
         if (forStmt.hasCondInFor()) visitCond(forStmt.getCondInFor());
@@ -181,7 +184,7 @@ public class Visitor {
         /*-- 'printf''('StringConst {','Exp}')'';' --*/
         List<String> forms = new ArrayList<>();
         String format = printStmt.getPrintForm();
-        String regex = "%[0-9]*[a-zA-Z]";
+        String regex = "%[cd]";
         Pattern pattern = Pattern.compile(regex);
         Matcher matcher = pattern.matcher(format);
         while (matcher.find()) {
@@ -369,8 +372,10 @@ public class Visitor {
         List<Symbol> params = new ArrayList<>();
         for (FuncFParamNode funcFParam : funcFParams.getFuncFParams()) {
             Symbol param = visitFuncFParam(funcFParam);
-            params.add(param);
-            curTable.addSymbol(param);
+            if (!isRename(param.getName(), param.getLineNumber())) {
+                params.add(param);
+                curTable.addSymbol(param);
+            }
         }
         return params;
     }
@@ -390,11 +395,10 @@ public class Visitor {
         Symbol funcSym = curTable.getSymbol(entry.getKey(), entry.getValue());
         if (funcSym != null) {
             List<Symbol.Type> refs = visitFuncRParams(funcRParams);
-            if (((FuncSymbol) funcSym).matchParams(refs)) {
+            if (((FuncSymbol) funcSym).matchParams(refs, entry.getValue())) {
                 /* TODO */
-                return funcSym.getType() == Symbol.Type.VoidFunc ? Symbol.Type.NONE : Symbol.Type.NotArray;
             }
-            return Symbol.Type.NONE;
+            return funcSym.getType() == Symbol.Type.VoidFunc ? Symbol.Type.NONE : Symbol.Type.NotArray;
         }
         return Symbol.Type.NONE;
     }
@@ -402,6 +406,7 @@ public class Visitor {
     private List<Symbol.Type> visitFuncRParams(FuncRParamsNode funcRParams) {
         /*-- FuncRParams → Exp { ',' Exp } --*/
         List<Symbol.Type> types = new ArrayList<>();
+        if (funcRParams == null) return types;
         for (ExpNode exp : funcRParams.getRParams()) {
             types.add(visitExp(exp));
         }

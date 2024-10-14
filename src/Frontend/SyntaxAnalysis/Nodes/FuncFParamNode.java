@@ -2,9 +2,6 @@ package Frontend.SyntaxAnalysis.Nodes;
 
 import Frontend.LexicalAnalysis.Token;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class FuncFParamNode implements Node {
     /*-- FuncFParam → BType Ident ['[' ']'] --*/
     private Node bTypeNode;

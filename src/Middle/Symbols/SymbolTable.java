@@ -28,10 +28,12 @@ public class SymbolTable {
         while (!table.hasSymbolCur(symbolName) && table.getParent() != null) {
             table = table.getParent();
         }
-        if (table.hasSymbolCur(symbolName)) return symbols.get(symbolName);
+        if (table.hasSymbolCur(symbolName)) return table.getSymCurTable(symbolName);
         ErrorHandling.processSemanticError("c", lineNumber);
         return null;
     }
+
+    public Symbol getSymCurTable(String symbolName) { return symbols.get(symbolName); }
 
     public boolean hasSymbolCur(String symbolName) { return symbols.containsKey(symbolName); }
 
