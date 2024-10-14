@@ -29,7 +29,7 @@ public class LValNode implements Node {
 
     public Map.Entry<String, Integer> getIdentifier() { return identTerminal.getIdentifier(); }
 
-    public boolean isArray() { return lbracketTerminal != null; }
+    public boolean isValInArray() { return lbracketTerminal != null; }
 
     public ExpNode getExp() { return (ExpNode) expNode; }
 

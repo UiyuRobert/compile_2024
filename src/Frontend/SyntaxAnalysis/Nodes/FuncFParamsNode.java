@@ -16,12 +16,9 @@ public class FuncFParamsNode implements Node {
         this.funcFParamNodes = funcFParamNodes;
     }
 
-    public FuncFParamNode getFuncFParam() {
-        return (FuncFParamNode) funcFParam;
-    }
-
     public List<FuncFParamNode> getFuncFParams() {
         List<FuncFParamNode> funcFParams = new ArrayList<>();
+        funcFParams.add((FuncFParamNode) funcFParam);
         funcFParamNodes.forEach(entry -> funcFParams.add((FuncFParamNode) entry.getKey()));
         return funcFParams;
     }

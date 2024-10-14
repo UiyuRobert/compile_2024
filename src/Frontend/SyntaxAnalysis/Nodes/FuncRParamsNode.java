@@ -1,6 +1,8 @@
 package Frontend.SyntaxAnalysis.Nodes;
 
 import Frontend.LexicalAnalysis.Token;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -12,6 +14,13 @@ public class FuncRParamsNode implements Node {
     public FuncRParamsNode(Node expNode, List<Map.Entry<Node, Token>> expNodes) {
         this.expNode = expNode;
         this.expNodes = expNodes;
+    }
+
+    public List<ExpNode> getRParams() {
+        List<ExpNode> rParams = new ArrayList<>();
+        rParams.add((ExpNode) expNode);
+        expNodes.forEach(e -> rParams.add((ExpNode) e.getKey()));
+        return rParams;
     }
 
     @Override

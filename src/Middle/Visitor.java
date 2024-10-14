@@ -29,7 +29,11 @@ public class Visitor {
 
     private boolean canBeUpdate(String name, int lineNumber) {
         Symbol symbol = curTable.getSymbol(name, lineNumber);
-        return symbol != null && !(symbol instanceof ConstSymbol);
+        if (symbol instanceof ConstSymbol) {
+            ErrorHandling.processSemanticError("h", lineNumber);
+            return false;
+        }
+        return true;
     }
 
     private Symbol.Type calType(String bType, String from, boolean isArray) {
@@ -142,9 +146,9 @@ public class Visitor {
 
     private void visitInForStmt(ForStmtNode forStmt) {
         /*-- ForStmt → LVal '=' Exp --*/
-        Map.Entry<String, Integer> ident = visitLVal(forStmt.getLVal());
+        Object[] ident = visitLVal(forStmt.getLVal());
         visitExp(forStmt.getExp());
-        if (canBeUpdate(ident.getKey(), ident.getValue())) {
+        if (canBeUpdate((String) ident[0], (int) ident[1])) {
             /* TODO */
         }
     }
@@ -179,17 +183,17 @@ public class Visitor {
 
     private void visitFuncStmt(StmtNode funcStmt) {
         /*-- LVal '=' 'getint''('')'';' |  LVal '=' 'getchar''('')''; --*/
-        Map.Entry<String, Integer> ident = visitLVal(funcStmt.getLVal());
-        if (canBeUpdate(ident.getKey(), ident.getValue())) {
+        Object[] ident = visitLVal(funcStmt.getLVal());
+        if (canBeUpdate((String) ident[0], (int) ident[1])) {
             /* TODO */
         }
     }
 
     private void visitAssignStmt(StmtNode assignStmt) {
         /*-- LVal '=' Exp ';' --*/
-        Map.Entry<String, Integer> ident = visitLVal(assignStmt.getLVal());
+        Object[] ident = visitLVal(assignStmt.getLVal());
         visitExp(assignStmt.getAssignExp());
-        if (canBeUpdate(ident.getKey(), ident.getValue())) {
+        if (canBeUpdate((String) ident[0], (int) ident[1])) {
             /* TODO */
         }
     }
@@ -227,10 +231,25 @@ public class Visitor {
         String name = entry.getKey();
         int lineNumber = entry.getValue();
         boolean isArray = constDef.isArray();
+        ConstSymbol symbol = null;
         if (!isRename(name, lineNumber)) {
-            curTable.addSymbol(new ConstSymbol(calType(bType, "Const", isArray), name, lineNumber));
+            symbol = new ConstSymbol(calType(bType, "Const", isArray), name, lineNumber);
+            curTable.addSymbol(symbol);
         }
         /* TODO */ // 解析 ConstExp 和 ConstInitVal
+        int[] ret = visitConstInitVal(constDef.getConstInitVal());
+        if (constDef.isArray()) {
+            int length = visitConstExp(constDef.getConstExp());
+        }
+        if (symbol != null) {
+
+        }
+    }
+
+    private int[] visitConstInitVal(ConstInitValNode constInitVal) {
+        /*-- ConstInitVal → ConstExp | '{' [ ConstExp { ',' ConstExp } ] '}' | StringConst --*/
+        int[] ret;
+
     }
 
     private void visitVarDecl(VarDeclNode varDecl) {
@@ -277,11 +296,8 @@ public class Visitor {
     private List<Symbol> visitFuncFParams(FuncFParamsNode funcFParams) {
         /*-- FuncFParams → FuncFParam { ',' FuncFParam } --*/
         List<Symbol> params = new ArrayList<>();
-        Symbol param = visitFuncFParam(funcFParams.getFuncFParam());
-        params.add(param);
-        curTable.addSymbol(param);
         for (FuncFParamNode funcFParam : funcFParams.getFuncFParams()) {
-            param = visitFuncFParam(funcFParam);
+            Symbol param = visitFuncFParam(funcFParam);
             params.add(param);
             curTable.addSymbol(param);
         }
@@ -297,10 +313,36 @@ public class Visitor {
         return new Symbol(argType, ident.getKey(), ident.getValue());
     }
 
+    private Symbol.Type visitFuncRef(Token ident, FuncRParamsNode funcRParams) {
+        /*-- Ident '(' [FuncRParams] ')' --*/
+        Map.Entry<String, Integer> entry = ident.getIdentifier();
+        Symbol funcSym = curTable.getSymbol(entry.getKey(), entry.getValue());
+        if (funcSym != null) {
+            List<Symbol.Type> refs = visitFuncRParams(funcRParams);
+            if (((FuncSymbol) funcSym).matchParams(refs)) {
+                /* TODO */
+                return funcSym.getType() == Symbol.Type.VoidFunc ? Symbol.Type.NONE : Symbol.Type.NotArray;
+            }
+            return Symbol.Type.NONE;
+        }
+        return Symbol.Type.NONE;
+    }
+
+    private List<Symbol.Type> visitFuncRParams(FuncRParamsNode funcRParams) {
+        /*-- FuncRParams → Exp { ',' Exp } --*/
+        List<Symbol.Type> types = new ArrayList<>();
+        for (ExpNode exp : funcRParams.getRParams()) {
+            types.add(visitExp(exp));
+        }
+        return types;
+    }
+
     /*----------------------------------------------- Func End ---------------------------------------------------*/
 
-    private int visitConstExp(ConstExpNode constExpNode) {
-        return 0;
+    /*----------------------------------------------- Exp Start ---------------------------------------------------*/
+
+    private int visitConstExp(ConstExpNode constExp) {
+        return constExp.getValue();
     }
 
     private void visitCond(CondNode cond) {
@@ -338,54 +380,66 @@ public class Visitor {
         }
     }
 
-    private void visitExp(ExpNode exp) {
+    private Symbol.Type visitExp(ExpNode exp) {
         /*-- Exp → AddExp --*/
-        visitAddExp(exp.getAddExpNode());
+        return visitAddExp(exp.getAddExpNode());
     }
 
-    private void visitAddExp(AddExpNode addExp) {
+    private Symbol.Type visitAddExp(AddExpNode addExp) {
         /*-- AddExp → MulExp | AddExp ('+' | '−') MulExp --*/
-        visitMulExp(addExp.getMulExp());
+        Symbol.Type refType = visitMulExp(addExp.getMulExp());
         for (Map.Entry<MulExpNode, String> entry: addExp.getMulExpExps()) {
             visitMulExp(entry.getKey());
             /* TODO */
         }
+        return refType;
     }
 
-    private void visitMulExp(MulExpNode mulExp) {
+    private Symbol.Type visitMulExp(MulExpNode mulExp) {
         /*-- MulExp → UnaryExp | MulExp ('*' | '/' | '%') UnaryExp --*/
-        visitUnaryExp(mulExp.getUnaryExp());
+        Symbol.Type refType = visitUnaryExp(mulExp.getUnaryExp());
         for (Map.Entry<UnaryExpNode, String> entry : mulExp.getUnaryExps()) {
             visitUnaryExp(entry.getKey());
             /* TODO */
         }
+        return refType;
     }
 
-    private void visitUnaryExp(UnaryExpNode unaryExp) {
+    private Symbol.Type visitUnaryExp(UnaryExpNode unaryExp) {
         /*-- UnaryExp → PrimaryExp | Ident '(' [FuncRParams] ')' | UnaryOp UnaryExp --*/
-
-    }
-
-    private void visitPrimaryExp(PrimaryExpNode primaryExp) {
-        /*-- PrimaryExp → '(' Exp ')' | LVal | Number | Character --*/
-        Node content = primaryExp.getContent();
-        if (content instanceof ExpNode) visitExp((ExpNode) content);
-        else if (content instanceof LValNode) visitLVal((LValNode) content);
+        if (unaryExp.isPrimaryExp()) return visitPrimaryExp(unaryExp.getPrimaryExp());
+        else if (unaryExp.isOpUnary()) {
+            Map.Entry<UnaryExpNode, String> entry = unaryExp.getOpUnary();
+            return visitUnaryExp(entry.getKey());
+        }
         else {
-            // 字面量
+            Map.Entry<Token, FuncRParamsNode> entry = unaryExp.getFuncRef();
+            return visitFuncRef(entry.getKey(), entry.getValue());
         }
     }
 
-    private void visitFuncRef(Token ident, FuncRParamsNode funcRParams) {
-
+    private Symbol.Type visitPrimaryExp(PrimaryExpNode primaryExp) {
+        /*-- PrimaryExp → '(' Exp ')' | LVal | Number | Character --*/
+        Node content = primaryExp.getContent();
+        if (content instanceof ExpNode) return visitExp((ExpNode) content);
+        else if (content instanceof LValNode) {
+            Object[] ret = visitLVal((LValNode) content);
+            Symbol symbol = curTable.getSymbol((String) ret[0], (int)ret[1]);
+            if (symbol != null) return symbol.getRefType((boolean) ret[2]);
+            return Symbol.Type.NONE;
+        }
+        else {
+            // 字面量
+            return Symbol.Type.NotArray;
+        }
     }
 
-    private Map.Entry<String, Integer> visitLVal(LValNode lVal) {
+    private Object[] visitLVal(LValNode lVal) {
         /*-- LVal → Ident ['[' Exp ']']  --*/
         Map.Entry<String, Integer> entry = lVal.getIdentifier();
-        boolean isArray = lVal.isArray();
-        if (isArray) visitExp(lVal.getExp());
-        return entry;
+        boolean isValInArray = lVal.isValInArray();
+        if (isValInArray) visitExp(lVal.getExp());
+        return new Object[]{entry.getKey(), entry.getValue(), isValInArray};
     }
 
 }

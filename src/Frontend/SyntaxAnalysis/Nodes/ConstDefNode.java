@@ -2,7 +2,6 @@ package Frontend.SyntaxAnalysis.Nodes;
 
 import Frontend.LexicalAnalysis.Token;
 
-import java.util.AbstractMap;
 import java.util.Map;
 
 public class ConstDefNode implements Node {
@@ -32,9 +31,11 @@ public class ConstDefNode implements Node {
         return lbracketTerminal != null;
     }
 
-    public ConstExpNode getConstExpNode() {
+    public ConstExpNode getConstExp() {
         return (ConstExpNode) constExpNode;
     }
+
+    public ConstInitValNode getConstInitVal() { return (ConstInitValNode) constInitValNode; }
 
     @Override
     public String toString() {

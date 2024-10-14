@@ -6,8 +6,9 @@ package Middle.Symbols;
 public class Symbol {
     public enum Type {
         ConstChar, ConstInt, ConstCharArray, ConstIntArray, // 常量
-        Char, Int, CharArray, IntArray, // 变量
-        VoidFunc, CharFunc, IntFunc // 函数
+        Char, Int, CharArray, IntArray, NotArray,// 变量
+        VoidFunc, CharFunc, IntFunc, // 函数
+        NONE // 空类型
     }
     private Type type;
     private String name;
@@ -23,7 +24,29 @@ public class Symbol {
         return type;
     }
 
+    public Type getRefType(boolean isValInArray) {
+        switch (type) {
+            case ConstChar:
+            case Char:
+            case Int:
+            case ConstInt:
+                return Type.NotArray;
+            case ConstCharArray:
+            case CharArray:
+                if (isValInArray) return Type.NotArray;
+                return Type.CharArray;
+            case ConstIntArray:
+            case IntArray:
+                if (isValInArray) return Type.NotArray;
+                return Type.IntArray;
+            default:
+                return Type.NONE;
+        }
+    }
+
     public String getName() {
         return name;
     }
+
+    public int getLineNumber() { return lineNumber; }
 }
