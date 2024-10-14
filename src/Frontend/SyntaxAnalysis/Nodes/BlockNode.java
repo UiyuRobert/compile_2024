@@ -23,6 +23,8 @@ public class BlockNode implements Node {
         return blockItemNodes;
     }
 
+    public int getRbraceLineNum() { return rbraceTerminal.getLineNumber(); }
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder(lbraceTerminal.toString());

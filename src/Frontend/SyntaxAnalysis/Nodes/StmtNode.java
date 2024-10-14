@@ -302,6 +302,8 @@ public class StmtNode implements Node {
         this.kind = Kind.RETURNSTMT;
     }
 
+    public int getRetLineNum() { return returnTerminal.getLineNumber(); }
+
     public Kind getKind() { return kind; }
 
     public BlockNode getBlock() { return (BlockNode) blockNode; }

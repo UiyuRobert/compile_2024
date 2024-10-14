@@ -1,6 +1,8 @@
 package Frontend.SyntaxAnalysis.Nodes;
 
 import Frontend.LexicalAnalysis.Token;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -29,6 +31,23 @@ public class ConstInitValNode implements Node {
 
     public ConstInitValNode(Token stringTerminal) {
         this.stringTerminal = stringTerminal;
+    }
+
+    public boolean isStrVal() { return stringTerminal != null; }
+
+    public String getStrInit() { return stringTerminal.getValue(); }
+
+    public boolean isConstOnly() { return constExpNodeOnly != null; }
+
+    public ConstExpNode getConstOnly() { return (ConstExpNode) constExpNodeOnly; }
+
+    public boolean isConstArray() { return lBraceTerminal != null; }
+
+    public List<ConstExpNode> getConstExps() {
+        List<ConstExpNode> constExps = new ArrayList<>();
+        constExps.add((ConstExpNode) constExpNode);
+        constExpNodes.forEach(e -> constExps.add((ConstExpNode) e.getKey()));
+        return constExps;
     }
 
     @Override

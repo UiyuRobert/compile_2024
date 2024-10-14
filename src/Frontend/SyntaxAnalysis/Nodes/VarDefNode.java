@@ -37,9 +37,13 @@ public class VarDefNode implements Node {
         return identTerminal.getIdentifier();
     }
 
-    public boolean isArray() {
-        return lbracketTerminal != null;
-    }
+    public boolean isArray() { return lbracketTerminal != null; }
+
+    public int getArrayLength() { return ((ConstExpNode)constExpNode).getValue(); }
+
+    public boolean hasAssign() { return assignTerminal != null; }
+
+    public InitValNode getInitVal() { return (InitValNode)initValNode; }
 
     @Override
     public String toString() {

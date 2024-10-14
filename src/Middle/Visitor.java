@@ -15,9 +15,16 @@ public class Visitor {
     private int domainNumber;
     private int inFor;
 
+    private Symbol.Type funcEnv;
+    private boolean isFinalStmt;
+    private boolean hasReturn;
+
     public Visitor() {
         this.domainNumber = 0;
         inFor = 0;
+        funcEnv = Symbol.Type.NONE;
+        isFinalStmt = false;
+        hasReturn = false;
     }
 
     private boolean isRename(String name, int lineNumber) {
@@ -84,6 +91,8 @@ public class Visitor {
 
     private void visitMainFunc(MainFucDefNode mainFucDefNode) {
         /*-- MainFuncDef → 'int' 'main' '(' ')' Block --*/
+        curTable = new SymbolTable(curTable, ++domainNumber);
+        visitFuncBlock(mainFucDefNode.getBlock(), Symbol.Type.IntFunc);
 
     }
 
@@ -93,12 +102,27 @@ public class Visitor {
 
     private void visitNormalBlock(BlockNode block) {
         /*-- Block → '{' { BlockItem } '}' --*/
-
+        curTable = new SymbolTable(curTable, ++domainNumber);
+        List<BlockItemNode> items = block.getBlockItems();
+        for (BlockItemNode item : items)
+            visitBlockItem(item);
+        curTable = curTable.getParent();
     }
 
     private void visitFuncBlock(BlockNode funcBlock, Symbol.Type retType) {
         /*-- Block → '{' { BlockItem } '}' --*/ // 此时已经是新的作用域了，有新的符号表
-
+        funcEnv = retType;
+        List<BlockItemNode> items = funcBlock.getBlockItems();
+        for (int i = 0; i < items.size(); i++) {
+            if (i == items.size() - 1) isFinalStmt = true;
+            visitBlockItem(items.get(i));
+        }
+        isFinalStmt = false;
+        if (!hasReturn && (funcEnv == Symbol.Type.CharFunc || funcEnv == Symbol.Type.IntFunc))
+            ErrorHandling.processSemanticError("g", funcBlock.getRbraceLineNum());
+        hasReturn = false;
+        funcEnv = Symbol.Type.NONE;
+        curTable = curTable.getParent();
     }
 
     private void visitBlockItem(BlockItemNode blockItem) {
@@ -173,7 +197,6 @@ public class Visitor {
     private void visitBOCStmt(StmtNode bocStmt) {
         /*-- 'break' ';' | 'continue' ';' --*/ // 只能出现在 for 语句块中
         if (inFor == 0) ErrorHandling.processSemanticError("m", bocStmt.getBOCLineNum());
-
     }
 
     private void visitExpStmt(StmtNode expStmt) {
@@ -200,7 +223,12 @@ public class Visitor {
 
     private void visitReturnStmt(StmtNode returnStmt) {
         /*-- 'return' [Exp] ';' --*/
-
+        if (funcEnv != Symbol.Type.NONE && isFinalStmt) hasReturn = true;
+        if (returnStmt.hasExp()) {
+            visitExp(returnStmt.getExp());
+            if (funcEnv == Symbol.Type.VoidFunc)
+                ErrorHandling.processSemanticError("f", returnStmt.getRetLineNum());
+        }
     }
 
     /*----------------------------------------------- Stmt End ---------------------------------------------------*/
@@ -236,20 +264,35 @@ public class Visitor {
             symbol = new ConstSymbol(calType(bType, "Const", isArray), name, lineNumber);
             curTable.addSymbol(symbol);
         }
-        /* TODO */ // 解析 ConstExp 和 ConstInitVal
-        int[] ret = visitConstInitVal(constDef.getConstInitVal());
-        if (constDef.isArray()) {
-            int length = visitConstExp(constDef.getConstExp());
-        }
+        int length = 0;
+        if (isArray)
+            length = visitConstExp(constDef.getConstExp());
+        int[] ret = visitConstInitVal(length, constDef.getConstInitVal());
         if (symbol != null) {
-
+            if (length == 0) symbol.setInitValue(ret[0]);
+            else symbol.setInitValue(ret);
         }
     }
 
-    private int[] visitConstInitVal(ConstInitValNode constInitVal) {
+    private int[] visitConstInitVal(int length, ConstInitValNode constInitVal) {
         /*-- ConstInitVal → ConstExp | '{' [ ConstExp { ',' ConstExp } ] '}' | StringConst --*/
         int[] ret;
-
+        if (length == 0) {
+            ret = new int[1];
+            ret[0] = constInitVal.getConstOnly().getValue();
+            return ret;
+        }
+        ret = new int[length];
+        if (constInitVal.isStrVal()) {
+            String str = constInitVal.getStrInit();
+            for (int i = 0; i < str.length(); i++) ret[i] = str.charAt(i);
+            for (int i = str.length(); i < length; i++) ret[i] = 0;
+            return ret;
+        }
+        List<ConstExpNode> constExps = constInitVal.getConstExps();
+        for (int i = 0; i < constExps.size(); i++) ret[i] = constExps.get(i).getValue();
+        for (int i = constExps.size(); i < length; i++) ret[i] = 0;
+        return ret;
     }
 
     private void visitVarDecl(VarDeclNode varDecl) {
@@ -267,10 +310,36 @@ public class Visitor {
         String name = entry.getKey();
         int lineNumber = entry.getValue();
         boolean isArray = varDef.isArray();
+        VarSymbol symbol = null;
         if (!isRename(name, lineNumber)) {
-            curTable.addSymbol(new VarSymbol(calType(bType, "Var", isArray), name, lineNumber));
+            symbol = new VarSymbol(calType(bType, "Var", isArray), name, lineNumber);
+            curTable.addSymbol(symbol);
         }
-        /* TODO */ // 解析 ConstExp 和 InitVal
+        int length = 0;
+        if (isArray) length = varDef.getArrayLength();
+        if (symbol != null && varDef.hasAssign()) {
+            int[] ret = visitInitVal(length, varDef.getInitVal());
+            if (ret != null) symbol.setInitValue(ret);
+        }
+    }
+
+    private int[] visitInitVal(int length, InitValNode initVal) {
+        /*-- InitVal → Exp | '{' [ Exp { ',' Exp } ] '}' | StringConst --*/
+        if (length == 0) {
+            visitExp(initVal.getExpOnly());
+            return null;
+        }
+        int[] ret = new int[length];
+        if (initVal.isStrInit()) {
+            String str = initVal.getStrInit();
+            for (int i = 0; i < str.length(); i++) ret[i] = str.charAt(i);
+            for (int i = str.length(); i < length; i++) ret[i] = 0;
+            return ret;
+        }
+        for (ExpNode exp : initVal.getExpInits()) {
+            visitExp(exp);
+        }
+        return null;
     }
 
     /*----------------------------------------------- Decl End ---------------------------------------------------*/

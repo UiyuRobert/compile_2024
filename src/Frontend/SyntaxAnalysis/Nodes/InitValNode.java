@@ -2,6 +2,7 @@ package Frontend.SyntaxAnalysis.Nodes;
 
 import Frontend.LexicalAnalysis.Token;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -30,6 +31,18 @@ public class InitValNode implements Node {
 
     public InitValNode(Token stringTerminal) {
         this.stringTerminal = stringTerminal;
+    }
+
+    public ExpNode getExpOnly() { return (ExpNode) expNodeOnly; }
+
+    public boolean isStrInit() { return (stringTerminal != null); }
+
+    public String getStrInit() { return stringTerminal.getValue(); }
+
+    public List<ExpNode> getExpInits() {
+        List<ExpNode> exps = new ArrayList<>();
+        expNodes.forEach(e -> exps.add((ExpNode) e.getKey()));
+        return exps;
     }
 
     @Override

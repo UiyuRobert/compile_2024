@@ -1,10 +1,8 @@
 package Middle.Symbols;
 
-import java.util.List;
-
 public class VarSymbol extends Symbol {
     private int value; // char / int
-    private List<Integer> arrayValue;
+    private int[] arrayValue;
 
     public VarSymbol(Symbol.Type type, String name, int lineNumber) {
         super(type, name, lineNumber);
@@ -14,7 +12,7 @@ public class VarSymbol extends Symbol {
         this.value = value;
     }
 
-    public void setInitValue(List<Integer> arrayValue) {
+    public void setInitValue(int[] arrayValue) {
         this.arrayValue = arrayValue;
     }
 }

@@ -19,6 +19,8 @@ public class MainFucDefNode implements Node{
         this.blockNode = blockNode;
     }
 
+    public BlockNode getBlock() { return (BlockNode) blockNode; }
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder(intTerminal.toString());
