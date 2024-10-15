@@ -391,7 +391,7 @@ public class Parser {
                 /*-- LVal '=' Exp ';'
                      LVal '=' 'getint''('')'';'
                      LVal '=' 'getchar''('')'';' --*/
-                if (hasAssignLater()) {
+                if (isLVal()) {
                     Node lValNode = parseLVal();
                     Token assignTerminal = match(new KindCode[]{KindCode.ASSIGN});
                     if (currentToken.getKindCode() == KindCode.GETCHARTK ||
@@ -617,15 +617,16 @@ public class Parser {
         return kindCode == KindCode.INTTK || kindCode == KindCode.CHARTK || kindCode == KindCode.CONSTTK;
     }
 
-    public boolean hasAssignLater() {
-        boolean isArray = false;
-        for (int i = 1;;++i) {
-            if (lookAhead(i) == null || lookAhead(i).getKindCode() == KindCode.SEMICN ) return false;
-            else if (lookAhead(i).getKindCode() == KindCode.LBRACK) isArray = true;
-            else if (lookAhead(i).getKindCode() == KindCode.RBRACK) isArray = false;
+    public boolean isLVal() {
+        int isArray = 0;
+        for (int i = 1; ; ++i) {
+            if (lookAhead(i) == null || lookAhead(i).getKindCode() == KindCode.SEMICN) return false;
+            else if (lookAhead(i).getKindCode() == KindCode.LBRACK) ++isArray;
+            else if (lookAhead(i).getKindCode() == KindCode.RBRACK) --isArray;
             else if (lookAhead(i).getKindCode() == KindCode.ASSIGN) return true;
-            if (!isArray && (lookAhead(i).getKindCode() == KindCode.IDENFR
+            if (isArray == 0 && (lookAhead(i).getKindCode() == KindCode.IDENFR
                     || lookAhead(i).getKindCode() == KindCode.RBRACE)) return false;
+
         }
     }
 
