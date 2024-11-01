@@ -15,4 +15,8 @@ public class VarSymbol extends Symbol {
     public void setInitValue(int[] arrayValue) {
         this.arrayValue = arrayValue;
     }
+
+    public int getValue() { return value; }
+
+    public int getValue(int index) { return arrayValue[index]; }
 }

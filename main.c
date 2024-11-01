@@ -3,8 +3,7 @@ int ff[5] = {3,4};
 char s = 'r';
 char t[4] = "sd";
 char test[4] = {'2', 'r'};
-const int f5f[21] = {6,4};
-const int b = ff[1];
+const int b = 3;
 const int c[3] = {3,1};
 const char p[10] = {'2', 'r'};
 
@@ -14,5 +13,5 @@ int add(int x, int y) {
 
 int main() {
     int b = 2;
-    return add(b, b);
+    return add(a, b);
 }

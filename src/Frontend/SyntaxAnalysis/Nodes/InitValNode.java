@@ -44,6 +44,7 @@ public class InitValNode implements Node {
 
     public List<ExpNode> getExpInits() {
         List<ExpNode> exps = new ArrayList<>();
+        exps.add((ExpNode) expNode);
         expNodes.forEach(e -> exps.add((ExpNode) e.getKey()));
         return exps;
     }

@@ -11,7 +11,7 @@ public class CharacterNode implements Node {
     }
 
     public int getValue() {
-        return charConstTerminal.getValue().charAt(0);
+        return charConstTerminal.getValue().charAt(1);
     }
 
     @Override

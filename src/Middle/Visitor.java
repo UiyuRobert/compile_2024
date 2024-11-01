@@ -3,6 +3,11 @@ package Middle;
 import ErrorHandling.ErrorHandling;
 import Frontend.LexicalAnalysis.Token;
 import Frontend.SyntaxAnalysis.Nodes.*;
+import Middle.LLVMIR.IRGlobalVariable;
+import Middle.LLVMIR.IRModule;
+import Middle.LLVMIR.IRTypes.IRArrayType;
+import Middle.LLVMIR.IRTypes.IRIntType;
+import Middle.LLVMIR.IRTypes.IRType;
 import Middle.Symbols.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -12,6 +17,7 @@ import java.util.regex.Pattern;
 
 public class Visitor {
     public static SymbolTable curTable;
+    private IRModule irModule; // 顶层模块
     private int domainNumber;
     private int inFor;
 
@@ -25,6 +31,7 @@ public class Visitor {
         funcEnv = Symbol.Type.NONE;
         isFinalStmt = false;
         hasReturn = false;
+        irModule = new IRModule();
     }
 
     private boolean isRename(String name, int lineNumber) {
@@ -48,15 +55,21 @@ public class Visitor {
         if (isArray) {
             if (bType.equals("Int")) {
                 return from.equals("Const") ? Symbol.Type.ConstIntArray : Symbol.Type.IntArray;
-            } else {
-                return from.equals("Const") ? Symbol.Type.ConstCharArray : Symbol.Type.CharArray;
-            }
+            } else return from.equals("Const") ? Symbol.Type.ConstCharArray : Symbol.Type.CharArray;
         } else {
             if (bType.equals("Int")) {
                 return from.equals("Const") ? Symbol.Type.ConstInt : Symbol.Type.Int;
-            } else {
-                return from.equals("Const") ? Symbol.Type.ConstChar : Symbol.Type.Char;
-            }
+            } else return from.equals("Const") ? Symbol.Type.ConstChar : Symbol.Type.Char;
+        }
+    }
+
+    private IRType calType(String bType, int size) {
+        if (size != 0) {
+            if (bType.equals("Int")) return new IRArrayType(IRIntType.getI32(), size);
+             else return new IRArrayType(IRIntType.getI8(), size);
+        } else {
+            if (bType.equals("Int")) return IRIntType.getI32();
+            else return IRIntType.getI8();
         }
     }
 
@@ -68,7 +81,7 @@ public class Visitor {
 
     /*----------------------------------------------- CompUnit Start ---------------------------------------------------*/
 
-    public void visit(CompUnitNode compUnit) {
+    public IRModule visit(CompUnitNode compUnit) {
         /*-- CompUnit → {Decl} {FuncDef} MainFuncDef --*/
         curTable = new SymbolTable(null, ++domainNumber);
         /*-- 先处理 1 层变量 --*/
@@ -84,6 +97,7 @@ public class Visitor {
             }
         }
         visitMainFunc(compUnit.getMainFuncDefNode());
+        return irModule;
     }
 
     /*----------------------------------------------- CompUnit End ---------------------------------------------------*/
@@ -275,6 +289,12 @@ public class Visitor {
             if (length == 0) symbol.setInitValue(ret[0]);
             else symbol.setInitValue(ret);
         }
+        if (curTable.getParent() == null) {
+            // 全局作用域，生成 IRGlobalVariable
+            IRGlobalVariable globalVariable = new IRGlobalVariable(calType(bType, length), name, true);
+            globalVariable.setInit(ret);
+            irModule.addGlobalVariable(globalVariable);
+        }
     }
 
     private int[] visitConstInitVal(int length, ConstInitValNode constInitVal) {
@@ -320,25 +340,45 @@ public class Visitor {
         }
         int length = 0;
         if (isArray) length = varDef.getArrayLength();
+        int[] ret = null;
         if (symbol != null && varDef.hasAssign()) {
-            int[] ret = visitInitVal(length, varDef.getInitVal());
-            if (ret != null) symbol.setInitValue(ret);
+            ret = visitInitVal(length, varDef.getInitVal());
+            if (ret != null) {
+                if (length == 0) symbol.setInitValue(ret[0]);
+                else symbol.setInitValue(ret);
+            }
+        }
+        if (curTable.getParent() == null) {
+            // 全局作用域，生成 IRGlobalVariable
+            IRGlobalVariable globalVariable = new IRGlobalVariable(calType(bType, length), name, false);
+            globalVariable.setInit(ret);
+            irModule.addGlobalVariable(globalVariable);
         }
     }
 
     private int[] visitInitVal(int length, InitValNode initVal) {
         /*-- InitVal → Exp | '{' [ Exp { ',' Exp } ] '}' | StringConst --*/
         if (length == 0) {
-            visitExp(initVal.getExpOnly());
-            return null;
+            if (curTable.getParent() == null) {
+                int[] ret = new int[1];
+                ret[0] = initVal.getExpOnly().getValue();
+                return ret;
+            } else {
+                visitExp(initVal.getExpOnly());
+                return null;
+            }
         }
         int[] ret = new int[length];
         if (initVal.isStrInit()) {
             String str = initVal.getStrInit();
-            for (int i = 0; i < str.length(); i++) {
-                ret[i] = str.charAt(i);
-            }
+            for (int i = 0; i < str.length(); i++) ret[i] = str.charAt(i);
             for (int i = str.length(); i < length; i++) ret[i] = 0;
+            return ret;
+        }
+        if (curTable.getParent() == null) {
+            int index = 0;
+            for (ExpNode exp : initVal.getExpInits()) ret[index++] = exp.getValue();
+            while (index < length) ret[index++] = 0;
             return ret;
         }
         for (ExpNode exp : initVal.getExpInits()) {

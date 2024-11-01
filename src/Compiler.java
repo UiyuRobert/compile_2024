@@ -14,6 +14,7 @@ import java.util.List;
 import ErrorHandling.ErrorHandling;
 import Frontend.SyntaxAnalysis.Nodes.CompUnitNode;
 import Frontend.SyntaxAnalysis.Parser;
+import Middle.LLVMIR.IRModule;
 import Middle.Visitor;
 
 import static Middle.Symbols.SymbolTable.record;
@@ -22,6 +23,7 @@ public class Compiler {
     public static void main(String[] args) throws FileNotFoundException {
         /*--参数设置--*/
         String inputFileName = "testfile.txt";
+        String result;
         /*--初始化 Lexer--*/
         FileReader fileReader = new FileReader(inputFileName);
         Lexer lexer = new Lexer(fileReader);
@@ -31,16 +33,18 @@ public class Compiler {
         /*-- 启动 Parser --*/
         Parser parser = new Parser(tokenList);
         CompUnitNode compUnit = parser.parse();
+        result = parser.getParseResult();
         // System.out.println(parser.getParseResult());
-        /*-- 语法分析 --*/
+        /*-- 语义分析 --*/
         Visitor visitor = new Visitor();
-        visitor.visit(compUnit);
-        String result = sortAndGen(record);
+        IRModule module = visitor.visit(compUnit);
+        result = sortAndGen(record);
         /*--判断是否有错误--*/
         if (ErrorHandling.isErrorOccurred()) {
             errorOutput();
         } else {
             normalOutput(result);
+            System.out.println(module.getIR());
         }
     }
 
@@ -67,7 +71,7 @@ public class Compiler {
     }
 
     private static void normalOutput(String output) {
-        String outputRightFileName = "symbol.txt";
+        String outputRightFileName = "parser.txt";
         try {
             BufferedWriter writer = new BufferedWriter(new FileWriter(outputRightFileName));
             writer.write(output);

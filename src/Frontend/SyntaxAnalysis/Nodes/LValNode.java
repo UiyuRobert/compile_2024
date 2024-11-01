@@ -3,6 +3,8 @@ package Frontend.SyntaxAnalysis.Nodes;
 import Frontend.LexicalAnalysis.Token;
 import Middle.Symbols.ConstSymbol;
 import Middle.Symbols.Symbol;
+import Middle.Symbols.VarSymbol;
+
 import java.util.Map;
 import static Middle.Visitor.curTable;
 
@@ -24,7 +26,13 @@ public class LValNode implements Node {
         Map.Entry<String, Integer> entry = identTerminal.getIdentifier();
         Symbol symbol = curTable.getSymbol(entry.getKey(), entry.getValue());
         if (symbol == null) return 0;
-        return ((ConstSymbol)symbol).getValue();
+        if (expNode != null) {
+            int index = ((ExpNode)expNode).getValue();
+            return symbol instanceof ConstSymbol ? ((ConstSymbol)symbol).getValue(index)
+                    : ((VarSymbol)symbol).getValue(index);
+        }
+        return symbol instanceof ConstSymbol ? ((ConstSymbol)symbol).getValue()
+                : ((VarSymbol)symbol).getValue();
     }
 
     public Map.Entry<String, Integer> getIdentifier() { return identTerminal.getIdentifier(); }

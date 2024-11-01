@@ -1,1 +1,2 @@
-2 a IntArray
+1 add IntFunc
+2 a Int
