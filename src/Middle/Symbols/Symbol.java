@@ -1,5 +1,7 @@
 package Middle.Symbols;
 
+import Middle.LLVMIR.IRValue;
+
 /**
  * 符号类型
  * */
@@ -13,16 +15,20 @@ public class Symbol {
     private Type type;
     private String name;
     private int lineNumber;
+    private IRValue value;
 
     public Symbol(Type type, String name, int lineNumber) {
         this.name = name;
         this.type = type;
         this.lineNumber = lineNumber;
+        value = null;
     }
 
     public Type getType() {
         return type;
     }
+
+    public void setIRValue(IRValue value) { this.value = value; }
 
     public Type getRefType(boolean isValInArray) {
         switch (type) {

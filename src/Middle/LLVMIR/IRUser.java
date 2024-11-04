@@ -1,8 +1,12 @@
 package Middle.LLVMIR;
 
-public class IRUser extends IRValue {
-    public IRUser() {
-        super();
+import Middle.LLVMIR.IRTypes.IRType;
 
+public class IRUser extends IRValue {
+    private int operandCnt; // 操作数数量
+
+    public IRUser(IRType type, int operandCnt) {
+        super(type);
+        this.operandCnt = operandCnt;
     }
 }

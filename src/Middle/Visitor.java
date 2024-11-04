@@ -3,11 +3,14 @@ package Middle;
 import ErrorHandling.ErrorHandling;
 import Frontend.LexicalAnalysis.Token;
 import Frontend.SyntaxAnalysis.Nodes.*;
-import Middle.LLVMIR.IRGlobalVariable;
+import Middle.LLVMIR.IRTypes.*;
+import Middle.LLVMIR.IRValue;
+import Middle.LLVMIR.Values.*;
 import Middle.LLVMIR.IRModule;
-import Middle.LLVMIR.IRTypes.IRArrayType;
-import Middle.LLVMIR.IRTypes.IRIntType;
-import Middle.LLVMIR.IRTypes.IRType;
+import Middle.LLVMIR.Values.Instructions.IRInstruction;
+import Middle.LLVMIR.Values.Instructions.Memory.IRAlloca;
+import Middle.LLVMIR.Values.Instructions.Memory.IRGetElePtr;
+import Middle.LLVMIR.Values.Instructions.Memory.IRStore;
 import Middle.Symbols.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,6 +28,12 @@ public class Visitor {
     private boolean isFinalStmt;
     private boolean hasReturn;
 
+    private IRFunction irFuncEnv = null; // 所在的函数环境
+    private ArrayList<IRBasicBlock> curFunBlocks;
+    private IRBasicBlock curBlock = null;
+    private ArrayList<IRInstruction> curBlockInstrs;
+
+
     public Visitor() {
         this.domainNumber = 0;
         inFor = 0;
@@ -32,6 +41,8 @@ public class Visitor {
         isFinalStmt = false;
         hasReturn = false;
         irModule = new IRModule();
+        curFunBlocks = new ArrayList<>();
+        curBlockInstrs = new ArrayList<>();
     }
 
     private boolean isRename(String name, int lineNumber) {
@@ -77,6 +88,12 @@ public class Visitor {
         String type = funcType.getFuncType();
         return type.equals("void") ? Symbol.Type.VoidFunc :
                 type.equals("char") ? Symbol.Type.CharFunc : Symbol.Type.IntFunc;
+    }
+
+    private IRType calIRFuncType(FuncTypeNode funcType) {
+        String type = funcType.getFuncType();
+        return type.equals("void") ? IRVoidType.getVoid() :
+                type.equals("char") ? IRIntType.getI8() : IRIntType.getI32();
     }
 
     /*----------------------------------------------- CompUnit Start ---------------------------------------------------*/
@@ -127,12 +144,14 @@ public class Visitor {
     private void visitFuncBlock(BlockNode funcBlock, Symbol.Type retType) {
         /*-- Block → '{' { BlockItem } '}' --*/ // 此时已经是新的作用域了，有新的符号表
         funcEnv = retType;
+        curBlock = new IRBasicBlock("");
         List<BlockItemNode> items = funcBlock.getBlockItems();
         for (int i = 0; i < items.size(); i++) {
             if (i == items.size() - 1) isFinalStmt = true;
             visitBlockItem(items.get(i));
         }
         isFinalStmt = false;
+        /* 返回 */
         if (!hasReturn && (funcEnv == Symbol.Type.CharFunc || funcEnv == Symbol.Type.IntFunc))
             ErrorHandling.processSemanticError("g", funcBlock.getRbraceLineNum());
         hasReturn = false;
@@ -294,6 +313,33 @@ public class Visitor {
             IRGlobalVariable globalVariable = new IRGlobalVariable(calType(bType, length), name, true);
             globalVariable.setInit(ret);
             irModule.addGlobalVariable(globalVariable);
+            if (symbol != null)
+                symbol.setIRValue(globalVariable);
+        } else {
+            IRType irType = calType(bType, length);
+            if (irType instanceof IRArrayType) {
+                IRConstArray constArray = new IRConstArray(irType, "%_var" + IRFunction.getCounter());
+                constArray.setInit(ret);
+                if (symbol != null)
+                    symbol.setIRValue(constArray);
+                // 如果是数组，必须将数组存到内存里
+                IRAlloca alloca = new IRAlloca(irType, constArray);
+                curBlockInstrs.add(alloca);
+                String addrName = "%_var" + IRFunction.getCounter();
+                for (int i = 0; i < constArray.size(); ++i) {
+                    IRValue addr = new IRValue(new IRPtrType(IRIntType.getI32()), addrName);
+                    ArrayList<IRValue> index = new ArrayList<>();
+                    index.add(new IRConstant(IRIntType.getI32(), 0));
+                    index.add(new IRConstant(IRIntType.getI32(), i));
+                    IRGetElePtr gep = new IRGetElePtr(addr, constArray, index);
+                    IRValue toWrite = constArray.getValByIndex(i);
+                    IRStore store = new IRStore(toWrite, )
+                }
+            } else {
+                IRConstant constant = new IRConstant(irType, ret[0]);
+                if (symbol != null)
+                    symbol.setIRValue(constant);
+            }
         }
     }
 
@@ -353,6 +399,8 @@ public class Visitor {
             IRGlobalVariable globalVariable = new IRGlobalVariable(calType(bType, length), name, false);
             globalVariable.setInit(ret);
             irModule.addGlobalVariable(globalVariable);
+            if (symbol != null)
+                symbol.setIRValue(globalVariable);
         }
     }
 
@@ -391,19 +439,45 @@ public class Visitor {
 
     /*----------------------------------------------- Func Start ---------------------------------------------------*/
 
+    private IRType symbolTy2IRTy(Symbol.Type type) {
+        switch (type) {
+            case Char: return IRIntType.getI8();
+            case Int: return IRIntType.getI32();
+            case CharArray: return new IRArrayType(IRIntType.getI8(), -1);
+            case IntArray: return new IRArrayType(IRIntType.getI32(), -1);
+            default:
+                System.out.println("FUCK ! NOT HERE\n");
+                return null;
+        }
+    }
+
     private void visitFuncDef(FuncDefNode funcDef) {
         /*-- FuncDef → FuncType Ident '(' [FuncFParams] ')' Block --*/
         Symbol.Type type = calFuncType(funcDef.getFuncTypeNode());
         Map.Entry<String, Integer> entry = funcDef.getIdentifier();
+        FuncSymbol f = null;
         if (!isRename(entry.getKey(), entry.getValue())) {
-            curTable.addSymbol(new FuncSymbol(type, entry.getKey(), entry.getValue()));
+            f = new FuncSymbol(type, entry.getKey(), entry.getValue());
+            curTable.addSymbol(f);
         }
         curTable = new SymbolTable(curTable, ++domainNumber);
+        IRFuncType funcType = new IRFuncType(calIRFuncType(funcDef.getFuncTypeNode()));
         if (funcDef.hasParams()) {
             List<Symbol> params = visitFuncFParams(funcDef.getFuncFParams());
+            /* 添加参数 */
+            for (Symbol param : params) {
+                IRType irType = symbolTy2IRTy(param.getType()); // 参数的IR类型
+                IRValue p = new IRValue(irType, "%_param" + IRFunction.getCounter()); // 参数IR
+                funcType.addParam(p);
+                param.setIRValue(p);
+            }
             SymbolTable outer = curTable.getParent();
             outer.fillFuncParams(entry.getKey(), params);
         }
+        // IR
+        irFuncEnv = new IRFunction(funcType, "@" + entry.getKey());
+        irModule.addFunction(irFuncEnv);
+        f.setIRValue(irFuncEnv);
         visitFuncBlock(funcDef.getFuncDefBlock(), type);
     }
 

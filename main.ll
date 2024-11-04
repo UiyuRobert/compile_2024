@@ -3,40 +3,26 @@ source_filename = "main.c"
 target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128"
 target triple = "x86_64-pc-linux-gnu"
 
-@a = dso_local global i32 1, align 4
-@ff = dso_local global [5 x i32] [i32 3, i32 4, i32 0, i32 0, i32 0], align 16
-@s = dso_local global i8 114, align 1
-@t = dso_local global [4 x i8] c"sd\00\00", align 1
-@test = dso_local global [4 x i8] c"2r\00\00", align 1
-@b = dso_local constant i32 3, align 4
-@c = dso_local constant [3 x i32] [i32 3, i32 1, i32 0], align 4
-@p = dso_local constant <{ i8, i8, [8 x i8] }> <{ i8 50, i8 114, [8 x i8] zeroinitializer }>, align 1
-
-; Function Attrs: noinline nounwind optnone uwtable
-define dso_local i32 @add(i32 noundef %0, i32 noundef %1) #0 {
-  %3 = alloca i32, align 4
-  %4 = alloca i32, align 4
-  store i32 %0, ptr %3, align 4
-  store i32 %1, ptr %4, align 4
-  %5 = load i32, ptr %3, align 4
-  %6 = load i32, ptr %4, align 4
-  %7 = add nsw i32 %5, %6
-  ret i32 %7
-}
+@__const.main.c = private unnamed_addr constant [4 x i32] [i32 3, i32 5, i32 6, i32 0], align 16
 
 ; Function Attrs: noinline nounwind optnone uwtable
 define dso_local i32 @main() #0 {
   %1 = alloca i32, align 4
   %2 = alloca i32, align 4
+  %3 = alloca [4 x i32], align 16
   store i32 0, ptr %1, align 4
   store i32 2, ptr %2, align 4
-  %3 = load i32, ptr @a, align 4
-  %4 = load i32, ptr %2, align 4
-  %5 = call i32 @add(i32 noundef %3, i32 noundef %4)
-  ret i32 %5
+  call void @llvm.memcpy.p0.p0.i64(ptr align 16 %3, ptr align 16 @__const.main.c, i64 16, i1 false)
+  %4 = getelementptr inbounds [4 x i32], ptr %3, i64 0, i64 2
+  store i32 9, ptr %4, align 8
+  ret i32 0
 }
 
+; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
+declare void @llvm.memcpy.p0.p0.i64(ptr noalias nocapture writeonly, ptr noalias nocapture readonly, i64, i1 immarg) #1
+
 attributes #0 = { noinline nounwind optnone uwtable "frame-pointer"="all" "min-legal-vector-width"="0" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cmov,+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
+attributes #1 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
 
 !llvm.module.flags = !{!0, !1, !2, !3, !4}
 !llvm.ident = !{!5}

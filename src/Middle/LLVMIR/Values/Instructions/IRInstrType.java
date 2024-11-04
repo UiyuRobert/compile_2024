@@ -1,4 +1,4 @@
-package Middle.LLVMIR.Instructions;
+package Middle.LLVMIR.Values.Instructions;
 
 public enum IRInstrType {
     /* Arithmetic Binary */

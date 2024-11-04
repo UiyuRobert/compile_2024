@@ -1,5 +1,8 @@
 package Middle.LLVMIR;
 
+import Middle.LLVMIR.Values.IRFunction;
+import Middle.LLVMIR.Values.IRGlobalVariable;
+
 import java.util.ArrayList;
 
 public class IRModule{

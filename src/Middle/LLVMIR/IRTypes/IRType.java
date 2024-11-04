@@ -1,7 +1,7 @@
 package Middle.LLVMIR.IRTypes;
 
 /**
- * 值类型
+ * llvm 返回值类型
  * */
 public interface IRType {
 

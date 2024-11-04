@@ -1,8 +1,10 @@
-package Middle.LLVMIR;
+package Middle.LLVMIR.Values;
 
 import Middle.LLVMIR.IRTypes.IRArrayType;
 import Middle.LLVMIR.IRTypes.IRIntType;
 import Middle.LLVMIR.IRTypes.IRType;
+import Middle.LLVMIR.IRValue;
+
 import java.util.ArrayList;
 
 /**
@@ -13,7 +15,7 @@ public class IRGlobalVariable extends IRValue {
     private ArrayList<Integer> inits;
 
     public IRGlobalVariable(IRType type, String name, boolean isConst) {
-        super(type, name);
+        super(type, "@" + name);
         this.isConst = isConst;
         inits = new ArrayList<>(); // 为空说明非全局且无初始值
     }
@@ -24,14 +26,13 @@ public class IRGlobalVariable extends IRValue {
 
     public String getIR() {
         StringBuilder sb = new StringBuilder();
-        sb.append("@").append(this.getName());
+        sb.append(this.getName());
         sb.append(" = dso_local ");
         if (isConst) sb.append("constant ");
         else sb.append("global ");
         if (this.getType() instanceof IRArrayType) {
             IRType eleType = ((IRArrayType) this.getType()).getElementType();
-            int size = ((IRArrayType) this.getType()).getSize();
-            sb.append("[").append(size).append(" x ").append(eleType).append("] ");
+            sb.append(this.getType().toString()).append(" ");
             if (eleType == IRIntType.getI8()) {
                 sb.append("c\"");
                 for (Integer init : inits) {
