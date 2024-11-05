@@ -13,4 +13,16 @@ public class IRBasicBlock extends IRValue {
         super(IRLabelType.getLabel(), name);
         this.instructions = new ArrayList<>();
     }
+
+    public void addInstruction(IRInstruction instruction){
+        this.instructions.add(instruction);
+    }
+
+    public String getIR(String indent) {
+        StringBuilder stringBuilder = new StringBuilder();
+        for (IRInstruction instruction : instructions) {
+            stringBuilder.append(indent).append(instruction.getIR());
+        }
+        return stringBuilder.toString();
+    }
 }

@@ -13,12 +13,16 @@ import java.util.ArrayList;
 public class IRGlobalVariable extends IRValue {
     private boolean isConst;
     private ArrayList<Integer> inits;
+    private int length;
 
     public IRGlobalVariable(IRType type, String name, boolean isConst) {
         super(type, "@" + name);
         this.isConst = isConst;
         inits = new ArrayList<>(); // 为空说明非全局且无初始值
+        length = 0;
     }
+
+    public void setLength(int length) { this.length = length; }
 
     public void setInit(int[] arr) {
         if (arr != null) for (int j : arr) inits.add(j);
@@ -34,18 +38,30 @@ public class IRGlobalVariable extends IRValue {
             IRType eleType = ((IRArrayType) this.getType()).getElementType();
             sb.append(this.getType().toString()).append(" ");
             if (eleType == IRIntType.getI8()) {
-                sb.append("c\"");
-                for (Integer init : inits) {
-                    if (init != 0)
-                        sb.append((char) init.intValue());
-                    else sb.append("\\00");
+                if (inits.isEmpty() && length != 0)
+                    sb.append("zeroinitializer");
+                else {
+                    sb.append("c\"");
+                    for (Integer init : inits) {
+                        if (init != 0)
+                            sb.append((char) init.intValue());
+                        else sb.append("\\00");
+                    }
+                    sb.append("\"");
                 }
-                sb.append("\"");
+                sb.append(", align 1");
             }
             else {
-                sb.append("[");
-                for (Integer init : inits) sb.append(eleType).append(" ").append(init).append(", ");
-                sb.append("]");
+                if (inits.isEmpty() && length != 0)
+                    sb.append("zeroinitializer");
+                else {
+                    sb.append("[ ");
+                    sb.append(eleType).append(" ").append(inits.get(0));
+                    for (int i = 1; i < inits.size(); i++) {
+                        sb.append(", ").append(eleType).append(" ").append(inits.get(i));
+                    }
+                    sb.append(" ]");
+                }
             }
         } else {
             sb.append(this.getType()).append(" ");

@@ -5,6 +5,7 @@ import Middle.LLVMIR.IRTypes.IRIntType;
 import Middle.LLVMIR.IRTypes.IRPtrType;
 import Middle.LLVMIR.IRTypes.IRType;
 import Middle.LLVMIR.IRValue;
+import Middle.LLVMIR.Values.IRConstant;
 import Middle.LLVMIR.Values.Instructions.IRInstrType;
 import Middle.LLVMIR.Values.Instructions.IRInstruction;
 
@@ -30,7 +31,7 @@ public class IRGetElePtr extends IRInstruction {
     }
 
     private static IRType getEleTy(IRValue structVal) {
-        IRType eleType = structVal.getType();
+        IRType eleType = ((IRPtrType)structVal.getType()).getPointed();
         if (eleType == IRIntType.getI32())
             return IRIntType.getI32();
         else if (eleType == IRIntType.getI8())
@@ -41,5 +42,22 @@ public class IRGetElePtr extends IRInstruction {
             System.out.println("FUCK ! GEP SHOULD NOT REACH HERE !");
             return null;
         }
+    }
+
+    public String getIR() {
+        StringBuilder builder = new StringBuilder();
+        builder.append(result.getName()).append(" = getelementptr inbounds ");
+        builder.append(((IRPtrType)structVal.getType()).getPointed());
+        builder.append(", ").append(structVal.getType()).append(" ");
+        builder.append(structVal.getName());
+        for (IRValue index : index) {
+            builder.append(", ").append(index.getType()).append(" ");
+            if (index instanceof IRConstant)
+                builder.append(((IRConstant) index).getValue());
+            else
+                builder.append(index.getName());
+        }
+        builder.append("\n");
+        return builder.toString();
     }
 }

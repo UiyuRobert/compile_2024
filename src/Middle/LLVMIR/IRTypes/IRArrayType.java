@@ -19,7 +19,7 @@ public class IRArrayType implements IRType {
     @Override
     public String toString(){
         if (elementType == IRIntType.getI32())
-            return "[ " + size + " x i32]";
-        return "[ " + size + " x i8]";
+            return "[ " + size + " x i32 ]";
+        return "[ " + size + " x i8 ]";
     }
 }

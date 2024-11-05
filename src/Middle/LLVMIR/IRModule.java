@@ -25,6 +25,7 @@ public class IRModule{
     public String getIR() {
         StringBuilder sb = new StringBuilder();
         for (IRGlobalVariable gv : globals) sb.append(gv.getIR());
+        for (IRFunction f : functions) sb.append(f.getIR());
         return sb.toString();
     }
 }

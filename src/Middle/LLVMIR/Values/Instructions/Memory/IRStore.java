@@ -5,6 +5,7 @@ import Middle.LLVMIR.IRTypes.IRVoidType;
 import Middle.LLVMIR.IRUse;
 import Middle.LLVMIR.IRUser;
 import Middle.LLVMIR.IRValue;
+import Middle.LLVMIR.Values.IRConstant;
 import Middle.LLVMIR.Values.Instructions.IRInstrType;
 import Middle.LLVMIR.Values.Instructions.IRInstruction;
 
@@ -31,5 +32,17 @@ public class IRStore extends IRInstruction {
         valOfPtr.addUse(use2);
         this.addUse(use1);
         this.addUse(use2);
+    }
+
+    public String getIR() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("store ").append(val2Write.getType()).append(" ");
+        if (val2Write instanceof IRConstant)
+            builder.append(((IRConstant) val2Write).getValue());
+        else
+            builder.append(val2Write.getName());
+        builder.append(", ").append(valOfPtr.getType()).append(" ");
+        builder.append(valOfPtr.getName()).append("\n");
+        return builder.toString();
     }
 }

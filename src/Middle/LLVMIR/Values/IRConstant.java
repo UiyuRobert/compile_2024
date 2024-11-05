@@ -11,5 +11,5 @@ public class IRConstant extends IRValue {
         this.value = value;
     }
 
-
+    public int getValue() { return value; }
 }

@@ -29,9 +29,7 @@ public class Visitor {
     private boolean hasReturn;
 
     private IRFunction irFuncEnv = null; // 所在的函数环境
-    private ArrayList<IRBasicBlock> curFunBlocks;
-    private IRBasicBlock curBlock = null;
-    private ArrayList<IRInstruction> curBlockInstrs;
+    private IRBasicBlock curBlock = null; // 当前处理到的基本块
 
 
     public Visitor() {
@@ -41,8 +39,6 @@ public class Visitor {
         isFinalStmt = false;
         hasReturn = false;
         irModule = new IRModule();
-        curFunBlocks = new ArrayList<>();
-        curBlockInstrs = new ArrayList<>();
     }
 
     private boolean isRename(String name, int lineNumber) {
@@ -124,8 +120,10 @@ public class Visitor {
     private void visitMainFunc(MainFucDefNode mainFucDefNode) {
         /*-- MainFuncDef → 'int' 'main' '(' ')' Block --*/
         curTable = new SymbolTable(curTable, ++domainNumber);
+        IRFuncType funcType = new IRFuncType(IRIntType.getI32());
+        irFuncEnv = new IRFunction(funcType, "@main");
         visitFuncBlock(mainFucDefNode.getBlock(), Symbol.Type.IntFunc);
-
+        irModule.addFunction(irFuncEnv);
     }
 
     /*----------------------------------------------- MainFunc End ---------------------------------------------------*/
@@ -156,6 +154,7 @@ public class Visitor {
             ErrorHandling.processSemanticError("g", funcBlock.getRbraceLineNum());
         hasReturn = false;
         funcEnv = Symbol.Type.NONE;
+        irFuncEnv.addBlock(curBlock);
         curTable = curTable.getParent();
     }
 
@@ -312,6 +311,7 @@ public class Visitor {
             // 全局作用域，生成 IRGlobalVariable
             IRGlobalVariable globalVariable = new IRGlobalVariable(calType(bType, length), name, true);
             globalVariable.setInit(ret);
+            globalVariable.setLength(length);
             irModule.addGlobalVariable(globalVariable);
             if (symbol != null)
                 symbol.setIRValue(globalVariable);
@@ -324,16 +324,17 @@ public class Visitor {
                     symbol.setIRValue(constArray);
                 // 如果是数组，必须将数组存到内存里
                 IRAlloca alloca = new IRAlloca(irType, constArray);
-                curBlockInstrs.add(alloca);
-                String addrName = "%_var" + IRFunction.getCounter();
+                curBlock.addInstruction(alloca);
+                IRValue first = new IRValue(new IRPtrType(IRIntType.getI32()), constArray.getName()); // 数组首元素的地址
                 for (int i = 0; i < constArray.size(); ++i) {
-                    IRValue addr = new IRValue(new IRPtrType(IRIntType.getI32()), addrName);
+                    IRValue addr = new IRValue(new IRPtrType(IRIntType.getI32()), "%_var" + IRFunction.getCounter());
                     ArrayList<IRValue> index = new ArrayList<>();
-                    index.add(new IRConstant(IRIntType.getI32(), 0));
                     index.add(new IRConstant(IRIntType.getI32(), i));
-                    IRGetElePtr gep = new IRGetElePtr(addr, constArray, index);
-                    IRValue toWrite = constArray.getValByIndex(i);
-                    IRStore store = new IRStore(toWrite, )
+                    IRGetElePtr gep = new IRGetElePtr(addr, first, index); // 生成写入的地址
+                    IRValue toWrite = constArray.getValByIndex(i); // 生成写入的数据
+                    IRStore store = new IRStore(toWrite, addr); // store
+                    curBlock.addInstruction(gep);
+                    curBlock.addInstruction(store);
                 }
             } else {
                 IRConstant constant = new IRConstant(irType, ret[0]);
@@ -398,9 +399,13 @@ public class Visitor {
             // 全局作用域，生成 IRGlobalVariable
             IRGlobalVariable globalVariable = new IRGlobalVariable(calType(bType, length), name, false);
             globalVariable.setInit(ret);
+            globalVariable.setLength(length);
             irModule.addGlobalVariable(globalVariable);
             if (symbol != null)
                 symbol.setIRValue(globalVariable);
+        } else {
+            /* TODO */
+
         }
     }
 

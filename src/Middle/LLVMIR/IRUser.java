@@ -9,4 +9,9 @@ public class IRUser extends IRValue {
         super(type);
         this.operandCnt = operandCnt;
     }
+
+    public IRValue getOperand(int i) {
+        /* TODO */
+        return null;
+    }
 }

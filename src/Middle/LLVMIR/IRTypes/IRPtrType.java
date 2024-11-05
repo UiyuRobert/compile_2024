@@ -18,4 +18,11 @@ public class IRPtrType implements IRType {
         this.pointVal = pointVal;
         pointed = pointVal.getType();
     }
+
+    public IRType getPointed() { return pointed; }
+
+    @Override
+    public String toString() {
+        return pointed.toString() + "*";
+    }
 }

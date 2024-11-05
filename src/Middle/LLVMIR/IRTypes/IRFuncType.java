@@ -15,4 +15,12 @@ public class IRFuncType implements IRType {
     public void addParam(IRValue param){
         parameters.add(param);
     }
+
+    public IRType getReturnType(){
+        return returnType;
+    }
+
+    public ArrayList<IRValue> getParameters(){
+        return parameters;
+    }
 }

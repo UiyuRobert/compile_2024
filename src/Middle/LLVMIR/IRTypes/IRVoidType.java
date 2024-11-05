@@ -5,4 +5,9 @@ public class IRVoidType implements IRType {
     private IRVoidType(){ }
 
     public static IRVoidType getVoid(){ return VOID; }
+
+    @Override
+    public String toString() {
+        return "void";
+    }
 }

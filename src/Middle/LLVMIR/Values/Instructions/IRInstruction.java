@@ -11,4 +11,8 @@ public class IRInstruction extends IRUser {
         super(irType, operandCnt);
         this.instrType = instrType;
     }
+
+    public String getIR() {
+        return "";
+    }
 }

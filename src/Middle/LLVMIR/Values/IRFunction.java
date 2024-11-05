@@ -1,5 +1,6 @@
 package Middle.LLVMIR.Values;
 
+import Middle.LLVMIR.IRTypes.IRFuncType;
 import Middle.LLVMIR.IRTypes.IRType;
 import Middle.LLVMIR.IRValue;
 
@@ -18,5 +19,33 @@ public class IRFunction extends IRValue {
     /* 计算变量的下标 */
     public static int getCounter() {
         return counter++;
+    }
+
+    public void addBlock(IRBasicBlock block) {
+        blocks.add(block);
+    }
+
+    public String processParams(ArrayList<IRValue> params) {
+        StringBuilder ret = new StringBuilder();
+        if (!params.isEmpty()) {
+            ret.append(params.get(0).getType()).append(" ").append(params.get(0).getName());
+            for (int i = 1; i < params.size(); i++)
+                ret.append(", ").append(params.get(i).getType()).append(" ").append(params.get(i).getName());
+            return ret.toString();
+        }
+        return "";
+    }
+
+    public String getIR() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("define dso_local ");
+        builder.append(((IRFuncType)getType()).getReturnType()).append(" ");
+        builder.append(getName()).append("(");
+        builder.append(processParams(((IRFuncType)getType()).getParameters()));
+        builder.append(") {\n");
+        for (IRBasicBlock block : blocks)
+            builder.append(block.getIR("\t"));
+        builder.append("}\n");
+        return builder.toString();
     }
 }
