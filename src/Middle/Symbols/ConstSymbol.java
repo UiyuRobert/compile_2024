@@ -4,7 +4,7 @@ import java.util.List;
 
 public class ConstSymbol extends Symbol {
     private int value; // char / int
-    private int[] arrayValue;
+    private Integer[] arrayValue;
 
     public ConstSymbol(Type type, String name, int lineNumber) {
         super(type, name, lineNumber);
@@ -14,7 +14,7 @@ public class ConstSymbol extends Symbol {
         this.value = value;
     }
 
-    public void setInitValue(int[] arrayValue) {
+    public void setInitValue(Integer[] arrayValue) {
         this.arrayValue = arrayValue;
     }
 

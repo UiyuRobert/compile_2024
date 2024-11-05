@@ -27,5 +27,5 @@ public class IRValue {
 
     public void addUse(IRUse use) { useList.add(use); }
 
-
+    public void setName(String name) { this.name = name; }
 }

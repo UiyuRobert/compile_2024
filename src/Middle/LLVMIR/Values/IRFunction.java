@@ -7,7 +7,7 @@ import Middle.LLVMIR.IRValue;
 import java.util.ArrayList;
 
 public class IRFunction extends IRValue {
-    private static int counter = 0;
+    private int counter = 0;
     private ArrayList<IRBasicBlock> blocks; // 函数内部基本块集合
 
     public IRFunction(IRType type, String name) {
@@ -17,7 +17,7 @@ public class IRFunction extends IRValue {
     }
 
     /* 计算变量的下标 */
-    public static int getCounter() {
+    public int getCounter() {
         return counter++;
     }
 

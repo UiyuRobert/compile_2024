@@ -7,6 +7,8 @@ import Middle.LLVMIR.IRTypes.*;
 import Middle.LLVMIR.IRValue;
 import Middle.LLVMIR.Values.*;
 import Middle.LLVMIR.IRModule;
+import Middle.LLVMIR.Values.Instructions.IRBinaryInstr;
+import Middle.LLVMIR.Values.Instructions.IRInstrType;
 import Middle.LLVMIR.Values.Instructions.IRInstruction;
 import Middle.LLVMIR.Values.Instructions.Memory.IRAlloca;
 import Middle.LLVMIR.Values.Instructions.Memory.IRGetElePtr;
@@ -30,7 +32,7 @@ public class Visitor {
 
     private IRFunction irFuncEnv = null; // 所在的函数环境
     private IRBasicBlock curBlock = null; // 当前处理到的基本块
-
+    private IRValue curValue = null; // 计算表达式
 
     public Visitor() {
         this.domainNumber = 0;
@@ -205,7 +207,7 @@ public class Visitor {
 
     private void visitInForStmt(ForStmtNode forStmt) {
         /*-- ForStmt → LVal '=' Exp --*/
-        Object[] ident = visitLVal(forStmt.getLVal());
+        Object[] ident = visitLVal(forStmt.getLVal(), true);
         visitExp(forStmt.getExp());
         if (canBeUpdate((String) ident[0], (int) ident[1])) {
             /* TODO */
@@ -241,7 +243,7 @@ public class Visitor {
 
     private void visitFuncStmt(StmtNode funcStmt) {
         /*-- LVal '=' 'getint''('')'';' |  LVal '=' 'getchar''('')''; --*/
-        Object[] ident = visitLVal(funcStmt.getLVal());
+        Object[] ident = visitLVal(funcStmt.getLVal(), true);
         if (canBeUpdate((String) ident[0], (int) ident[1])) {
             /* TODO */
         }
@@ -249,7 +251,7 @@ public class Visitor {
 
     private void visitAssignStmt(StmtNode assignStmt) {
         /*-- LVal '=' Exp ';' --*/
-        Object[] ident = visitLVal(assignStmt.getLVal());
+        Object[] ident = visitLVal(assignStmt.getLVal(), true);
         visitExp(assignStmt.getAssignExp());
         if (canBeUpdate((String) ident[0], (int) ident[1])) {
             /* TODO */
@@ -302,7 +304,7 @@ public class Visitor {
         int length = 0;
         if (isArray)
             length = visitConstExp(constDef.getConstExp());
-        int[] ret = visitConstInitVal(length, constDef.getConstInitVal());
+        Integer[] ret = visitConstInitVal(length, constDef.getConstInitVal());
         if (symbol != null) {
             if (length == 0) symbol.setInitValue(ret[0]);
             else symbol.setInitValue(ret);
@@ -310,7 +312,7 @@ public class Visitor {
         if (curTable.getParent() == null) {
             // 全局作用域，生成 IRGlobalVariable
             IRGlobalVariable globalVariable = new IRGlobalVariable(calType(bType, length), name, true);
-            globalVariable.setInit(ret);
+            globalVariable.setInit((Integer[]) ret);
             globalVariable.setLength(length);
             irModule.addGlobalVariable(globalVariable);
             if (symbol != null)
@@ -318,7 +320,7 @@ public class Visitor {
         } else {
             IRType irType = calType(bType, length);
             if (irType instanceof IRArrayType) {
-                IRConstArray constArray = new IRConstArray(irType, "%_var" + IRFunction.getCounter());
+                IRConstArray constArray = new IRConstArray(irType, "%_var" + irFuncEnv.getCounter());
                 constArray.setInit(ret);
                 if (symbol != null)
                     symbol.setIRValue(constArray);
@@ -327,7 +329,7 @@ public class Visitor {
                 curBlock.addInstruction(alloca);
                 IRValue first = new IRValue(new IRPtrType(IRIntType.getI32()), constArray.getName()); // 数组首元素的地址
                 for (int i = 0; i < constArray.size(); ++i) {
-                    IRValue addr = new IRValue(new IRPtrType(IRIntType.getI32()), "%_var" + IRFunction.getCounter());
+                    IRValue addr = new IRValue(new IRPtrType(IRIntType.getI32()), "%_var" + irFuncEnv.getCounter());
                     ArrayList<IRValue> index = new ArrayList<>();
                     index.add(new IRConstant(IRIntType.getI32(), i));
                     IRGetElePtr gep = new IRGetElePtr(addr, first, index); // 生成写入的地址
@@ -344,18 +346,18 @@ public class Visitor {
         }
     }
 
-    private int[] visitConstInitVal(int length, ConstInitValNode constInitVal) {
+    private Integer[] visitConstInitVal(int length, ConstInitValNode constInitVal) {
         /*-- ConstInitVal → ConstExp | '{' [ ConstExp { ',' ConstExp } ] '}' | StringConst --*/
-        int[] ret;
+        Integer[] ret;
         if (length == 0) {
-            ret = new int[1];
+            ret = new Integer[1];
             ret[0] = constInitVal.getConstOnly().getValue();
             return ret;
         }
-        ret = new int[length];
+        ret = new Integer[length];
         if (constInitVal.isStrVal()) {
             String str = constInitVal.getStrInit();
-            for (int i = 0; i < str.length(); i++) ret[i] = str.charAt(i);
+            for (int i = 0; i < str.length(); i++) ret[i] = (int) str.charAt(i);
             for (int i = str.length(); i < length; i++) ret[i] = 0;
             return ret;
         }
@@ -387,18 +389,21 @@ public class Visitor {
         }
         int length = 0;
         if (isArray) length = varDef.getArrayLength();
-        int[] ret = null;
+        Object[] ret = null;
         if (symbol != null && varDef.hasAssign()) {
             ret = visitInitVal(length, varDef.getInitVal());
-            if (ret != null) {
-                if (length == 0) symbol.setInitValue(ret[0]);
-                else symbol.setInitValue(ret);
+            if (ret instanceof Integer[]) {
+                if (length == 0) symbol.setInitValue((Integer) ret[0]);
+                else symbol.setInitValue((Integer[]) ret);
             }
         }
         if (curTable.getParent() == null) {
             // 全局作用域，生成 IRGlobalVariable
             IRGlobalVariable globalVariable = new IRGlobalVariable(calType(bType, length), name, false);
-            globalVariable.setInit(ret);
+            if (ret instanceof Integer[])
+                globalVariable.setInit((Integer[]) ret);
+            else
+                System.out.println("FUCK ! THIS IS GLOBAL VARIABLE");
             globalVariable.setLength(length);
             irModule.addGlobalVariable(globalVariable);
             if (symbol != null)
@@ -409,22 +414,24 @@ public class Visitor {
         }
     }
 
-    private int[] visitInitVal(int length, InitValNode initVal) {
+    private Object[] visitInitVal(int length, InitValNode initVal) {
         /*-- InitVal → Exp | '{' [ Exp { ',' Exp } ] '}' | StringConst --*/
         if (length == 0) {
             if (curTable.getParent() == null) {
-                int[] ret = new int[1];
+                Integer[] ret = new Integer[1];
                 ret[0] = initVal.getExpOnly().getValue();
                 return ret;
             } else {
+                IRValue[] ret = new IRValue[1];
                 visitExp(initVal.getExpOnly());
+                ret[0] = curValue;
                 return null;
             }
         }
-        int[] ret = new int[length];
+        Integer[] ret = new Integer[length];
         if (initVal.isStrInit()) {
             String str = initVal.getStrInit();
-            for (int i = 0; i < str.length(); i++) ret[i] = str.charAt(i);
+            for (int i = 0; i < str.length(); i++) ret[i] = (int) str.charAt(i);
             for (int i = str.length(); i < length; i++) ret[i] = 0;
             return ret;
         }
@@ -472,7 +479,7 @@ public class Visitor {
             /* 添加参数 */
             for (Symbol param : params) {
                 IRType irType = symbolTy2IRTy(param.getType()); // 参数的IR类型
-                IRValue p = new IRValue(irType, "%_param" + IRFunction.getCounter()); // 参数IR
+                IRValue p = new IRValue(irType, "%_param" + irFuncEnv.getCounter()); // 参数IR
                 funcType.addParam(p);
                 param.setIRValue(p);
             }
@@ -583,20 +590,46 @@ public class Visitor {
     private Symbol.Type visitAddExp(AddExpNode addExp) {
         /*-- AddExp → MulExp | AddExp ('+' | '−') MulExp --*/
         Symbol.Type refType = visitMulExp(addExp.getMulExp());
+        IRValue left = curValue;
         for (Map.Entry<MulExpNode, String> entry: addExp.getMulExpExps()) {
             visitMulExp(entry.getKey());
-            /* TODO */
+            IRBinaryInstr addInstr = null;
+            IRValue right = curValue;
+            if (entry.getValue().equals("+"))
+                addInstr = new IRBinaryInstr(IRInstrType.Add, IRIntType.getI32(), left, right);
+            else if (entry.getValue().equals("-"))
+                addInstr = new IRBinaryInstr(IRInstrType.Sub, IRIntType.getI32(), left, right);
+            else System.out.println("FUCK ! NOT ADD OR SUB");
+            String name = "%_var" + irFuncEnv.getCounter();
+            addInstr.setName(name);
+            curBlock.addInstruction(addInstr);
+            left = addInstr;
         }
+        curValue = left;
         return refType;
     }
 
     private Symbol.Type visitMulExp(MulExpNode mulExp) {
         /*-- MulExp → UnaryExp | MulExp ('*' | '/' | '%') UnaryExp --*/
         Symbol.Type refType = visitUnaryExp(mulExp.getUnaryExp());
+        IRValue left = curValue;
         for (Map.Entry<UnaryExpNode, String> entry : mulExp.getUnaryExps()) {
             visitUnaryExp(entry.getKey());
-            /* TODO */
+            IRValue right = curValue;
+            IRBinaryInstr mulInstr = null;
+            if (entry.getValue().equals("*"))
+                mulInstr = new IRBinaryInstr(IRInstrType.Mul, IRIntType.getI32(), left, right);
+            else if (entry.getValue().equals("/"))
+                mulInstr = new IRBinaryInstr(IRInstrType.Div, IRIntType.getI32(), left, right);
+            else if (entry.getValue().equals("%"))
+                mulInstr = new IRBinaryInstr(IRInstrType.Mod, IRIntType.getI32(), left, right);
+            else System.out.println("FUCK ! NOT * / %");
+            String name = "%_var" + irFuncEnv.getCounter();
+            mulInstr.setName(name);
+            curBlock.addInstruction(mulInstr);
+            left = mulInstr;
         }
+        curValue = left;
         return refType;
     }
 
@@ -605,7 +638,17 @@ public class Visitor {
         if (unaryExp.isPrimaryExp()) return visitPrimaryExp(unaryExp.getPrimaryExp());
         else if (unaryExp.isOpUnary()) {
             Map.Entry<UnaryExpNode, String> entry = unaryExp.getOpUnary();
-            return visitUnaryExp(entry.getKey());
+            Symbol.Type type = visitUnaryExp(entry.getKey());
+            IRValue left = new IRConstant(IRIntType.getI32(), 0);
+            IRValue right = curValue;
+            if (entry.getValue().equals("-")) {
+                IRBinaryInstr addInstr = new IRBinaryInstr(IRInstrType.Sub, IRIntType.getI32(), left, right);
+                String name = "%_var" + irFuncEnv.getCounter();
+                addInstr.setName(name);
+                curBlock.addInstruction(addInstr);
+                curValue = addInstr;
+            }
+            return type;
         }
         else {
             Map.Entry<Token, FuncRParamsNode> entry = unaryExp.getFuncRef();
@@ -618,22 +661,40 @@ public class Visitor {
         Node content = primaryExp.getContent();
         if (content instanceof ExpNode) return visitExp((ExpNode) content);
         else if (content instanceof LValNode) {
-            Object[] ret = visitLVal((LValNode) content);
+            Object[] ret = visitLVal((LValNode) content, false);
             Symbol symbol = curTable.getSymbol((String) ret[0], (int)ret[1]);
             if (symbol != null) return symbol.getRefType((boolean) ret[2]);
             return Symbol.Type.NONE;
         }
         else {
             // 字面量
+            if (content instanceof NumberNode) {
+                int val = ((NumberNode) content).getValue();
+                curValue = new IRConstant(IRIntType.getI32(), val);
+            } else {
+                int val = ((CharacterNode) content).getValue();
+                curValue = new IRConstant(IRIntType.getI32(), val);
+            }
             return Symbol.Type.NotArray;
         }
     }
 
-    private Object[] visitLVal(LValNode lVal) {
+    private Object[] visitLVal(LValNode lVal, boolean isLeft) {
         /*-- LVal → Ident ['[' Exp ']']  --*/
         Map.Entry<String, Integer> entry = lVal.getIdentifier();
+        String symbolName = entry.getKey();
+        Symbol symbol = curTable.getSymbol(symbolName, entry.getValue());
         boolean isValInArray = lVal.isValInArray();
-        if (isValInArray) visitExp(lVal.getExp());
+        if (isValInArray) {
+            visitExp(lVal.getExp());
+
+        } else {
+            if (isLeft)
+                curValue = symbol.getIRValue();
+            else {
+
+            }
+        }
         return new Object[]{entry.getKey(), entry.getValue(), isValInArray};
     }
 

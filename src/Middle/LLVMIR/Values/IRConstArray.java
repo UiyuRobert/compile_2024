@@ -5,6 +5,7 @@ import Middle.LLVMIR.IRTypes.IRType;
 import Middle.LLVMIR.IRValue;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 /**
  * 代码中的常量值，针对于局部变量
@@ -17,8 +18,8 @@ public class IRConstArray extends IRValue {
         inits = new ArrayList<>();
     }
 
-    public void setInit(int[] arr) {
-        if (arr != null) for (int j : arr) inits.add(j);
+    public void setInit(Integer[] arr) {
+        if (arr != null) inits.addAll(Arrays.asList(arr));
     }
 
     public IRValue getValByIndex(int index) {

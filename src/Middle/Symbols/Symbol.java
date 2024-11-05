@@ -30,6 +30,8 @@ public class Symbol {
 
     public void setIRValue(IRValue value) { this.value = value; }
 
+    public IRValue getIRValue() { return value; }
+
     public Type getRefType(boolean isValInArray) {
         switch (type) {
             case ConstChar:

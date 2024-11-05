@@ -4,7 +4,7 @@ target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:
 target triple = "x86_64-pc-linux-gnu"
 
 @dd = dso_local global <{ i32, i32, [8 x i32] }> <{ i32 4, i32 5, [8 x i32] zeroinitializer }>, align 16
-@__const.main.c = private unnamed_addr constant [4 x i32] [i32 3, i32 5, i32 6, i32 0], align 16
+@__const.main.c_ = private unnamed_addr constant [4 x i32] [i32 3, i32 5, i32 6, i32 0], align 16
 @s = dso_local global [10 x i8] zeroinitializer, align 1
 
 ; Function Attrs: noinline nounwind optnone uwtable
@@ -12,10 +12,13 @@ define dso_local i32 @main() #0 {
   %1 = alloca i32, align 4
   %2 = alloca i32, align 4
   %3 = alloca [4 x i32], align 16
+  %4 = alloca i32, align 4
   store i32 0, ptr %1, align 4
   store i32 2, ptr %2, align 4
-  call void @llvm.memcpy.p0.p0.i64(ptr align 16 %3, ptr align 16 @__const.main.c, i64 16, i1 false)
+  call void @llvm.memcpy.p0.p0.i64(ptr align 16 %3, ptr align 16 @__const.main.c_, i64 16, i1 false)
   store i8 9, ptr getelementptr inbounds ([10 x i8], ptr @s, i64 0, i64 2), align 1
+  %5 = load i32, ptr @dd, align 16
+  store i32 %5, ptr %4, align 4
   ret i32 0
 }
 

@@ -24,7 +24,7 @@ public class IRGlobalVariable extends IRValue {
 
     public void setLength(int length) { this.length = length; }
 
-    public void setInit(int[] arr) {
+    public void setInit(Integer[] arr) {
         if (arr != null) for (int j : arr) inits.add(j);
     }
 

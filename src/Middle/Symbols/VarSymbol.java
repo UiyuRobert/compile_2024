@@ -2,7 +2,7 @@ package Middle.Symbols;
 
 public class VarSymbol extends Symbol {
     private int value; // char / int
-    private int[] arrayValue;
+    private Integer[] arrayValue;
 
     public VarSymbol(Symbol.Type type, String name, int lineNumber) {
         super(type, name, lineNumber);
@@ -12,7 +12,7 @@ public class VarSymbol extends Symbol {
         this.value = value;
     }
 
-    public void setInitValue(int[] arrayValue) {
+    public void setInitValue(Integer[] arrayValue) {
         this.arrayValue = arrayValue;
     }
 
