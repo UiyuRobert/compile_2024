@@ -10,12 +10,22 @@ import Middle.LLVMIR.IRValue;
  */
 public class IRZext extends IRInstruction {
     private IRType targetType; // 目标类型
+    private IRValue toExt;
 
     public IRZext(IRValue toExt, IRType targetType) {
         super(IRInstrType.Zext, targetType, 1);
         this.targetType = targetType;
+        this.toExt = toExt;
         IRUse use = new IRUse(this, toExt, 0);
         this.addUse(use);
         toExt.addUse(use);
+    }
+
+    public String getIR() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(this.getName()).append(" = zext ");
+        sb.append(toExt.getType().toString()).append(" ");
+        sb.append(toExt.getName()).append(" to ").append(targetType).append("\n");
+        return sb.toString();
     }
 }

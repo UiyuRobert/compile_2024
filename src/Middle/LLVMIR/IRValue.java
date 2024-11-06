@@ -9,7 +9,9 @@ public class IRValue implements Serializable {
     private IRType type; // 值类型
     private String name;
     private ArrayList<IRUse> useList;
-    private boolean isParam = false;
+
+    private boolean isParam = false; // 是否是函数的参数
+    private boolean isAlloc = false;
 
     public IRValue(IRType type, String name) {
         this.type = type;
@@ -34,6 +36,10 @@ public class IRValue implements Serializable {
     public void setParam(boolean isParam) { this.isParam = isParam; }
 
     public boolean isParam() { return isParam; }
+
+    public void setAlloc(boolean isAlloc) { this.isAlloc = isAlloc; }
+
+    public boolean isAlloc() { return isAlloc; }
 
     public IRValue deepClone() {
         IRValue cloneVal = null;

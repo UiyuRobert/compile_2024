@@ -19,18 +19,16 @@ import java.util.ArrayList;
  *  {, [inrange] <ty> <idx>}*：表示可变长度的索引列表，其中每个索引 <idx> 都有一个类型 <ty>
  * */
 public class IRGetElePtr extends IRInstruction {
-    private IRValue result;
     private IRValue structVal;// 数据结构
     private ArrayList<IRValue> index;
 
-    public IRGetElePtr(IRValue result, IRValue structVal, ArrayList<IRValue> index) {
+    public IRGetElePtr(IRValue structVal, ArrayList<IRValue> index) {
         super(IRInstrType.GEP, new IRPtrType(getEleTy(structVal)), index.size() + 1);
         this.structVal = structVal;
         this.index = index;
-        this.result = result;
     }
 
-    private static IRType getEleTy(IRValue structVal) {
+    public static IRType getEleTy(IRValue structVal) {
         IRType eleType = ((IRPtrType)structVal.getType()).getPointed();
         if (eleType == IRIntType.I32())
             return IRIntType.I32();
@@ -46,7 +44,7 @@ public class IRGetElePtr extends IRInstruction {
 
     public String getIR() {
         StringBuilder builder = new StringBuilder();
-        builder.append(result.getName()).append(" = getelementptr inbounds ");
+        builder.append(getName()).append(" = getelementptr inbounds ");
         builder.append(((IRPtrType)structVal.getType()).getPointed());
         builder.append(", ").append(structVal.getType()).append(" ");
         builder.append(structVal.getName());

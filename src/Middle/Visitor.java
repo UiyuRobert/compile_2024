@@ -8,6 +8,7 @@ import Middle.LLVMIR.IRValue;
 import Middle.LLVMIR.Values.*;
 import Middle.LLVMIR.IRModule;
 import Middle.LLVMIR.Values.Instructions.IRBinaryInstr;
+import Middle.LLVMIR.Values.Instructions.IRCall;
 import Middle.LLVMIR.Values.Instructions.IRInstrType;
 import Middle.LLVMIR.Values.Instructions.IRZext;
 import Middle.LLVMIR.Values.Instructions.Memory.IRAlloca;
@@ -91,7 +92,7 @@ public class Visitor {
 
     private IRType calIRFuncType(FuncTypeNode funcType) {
         String type = funcType.getFuncType();
-        return type.equals("void") ? IRVoidType.getVoid() :
+        return type.equals("void") ? IRVoidType.Void() :
                 type.equals("char") ? IRIntType.I8() : IRIntType.I32();
     }
 
@@ -253,9 +254,13 @@ public class Visitor {
     private void visitAssignStmt(StmtNode assignStmt) {
         /*-- LVal '=' Exp ';' --*/
         Object[] ident = visitLVal(assignStmt.getLVal(), true);
+        IRValue left = curValue;
         visitExp(assignStmt.getAssignExp());
+        IRValue right = curValue;
         if (canBeUpdate((String) ident[0], (int) ident[1])) {
-            /* TODO */
+            IRStore store = new IRStore(right, left);
+            store.setName("_var" + irFuncEnv.getCounter());
+            curBlock.addInstruction(store);
         }
     }
 
@@ -326,16 +331,16 @@ public class Visitor {
                 if (symbol != null)
                     symbol.setIRValue(constArray);
                 // 如果是数组，必须将数组存到内存里
-                IRAlloca alloca = new IRAlloca(irType, constArray);
+                IRAlloca alloca = new IRAlloca(irType, constArray.getName());
                 curBlock.addInstruction(alloca);
                 IRValue first = new IRValue(new IRPtrType(IRIntType.I32()), constArray.getName()); // 数组首元素的地址
                 for (int i = 0; i < constArray.size(); ++i) {
-                    IRValue addr = new IRValue(new IRPtrType(IRIntType.I32()), "%_var" + irFuncEnv.getCounter());
                     ArrayList<IRValue> index = new ArrayList<>();
                     index.add(new IRConstant(IRIntType.I32(), i));
-                    IRGetElePtr gep = new IRGetElePtr(addr, first, index); // 生成写入的地址
+                    IRGetElePtr gep = new IRGetElePtr(first, index); // 生成写入的地址
+                    gep.setName("%_var" + irFuncEnv.getCounter());
                     IRValue toWrite = constArray.getValByIndex(i); // 生成写入的数据
-                    IRStore store = new IRStore(toWrite, addr); // store
+                    IRStore store = new IRStore(toWrite, gep); // store
                     curBlock.addInstruction(gep);
                     curBlock.addInstruction(store);
                 }
@@ -523,23 +528,38 @@ public class Visitor {
         Map.Entry<String, Integer> entry = ident.getIdentifier();
         Symbol funcSym = curTable.getSymbol(entry.getKey(), entry.getValue());
         if (funcSym != null) {
-            List<Symbol.Type> refs = visitFuncRParams(funcRParams);
+            Object[] ret = visitFuncRParams(funcRParams);
+            List<Symbol.Type> refs = (List<Symbol.Type>) ret[0];
+            ArrayList<IRValue> args = (ArrayList<IRValue>) ret[1];
             if (((FuncSymbol) funcSym).matchParams(refs, entry.getValue())) {
-                /* TODO */
+                IRFunction func = (IRFunction) funcSym.getIRValue();
+                IRCall call = new IRCall(func, args);
+                call.setName("%_val" + irFuncEnv.getCounter());
+                curBlock.addInstruction(call);
+                curValue = call;
             }
             return funcSym.getType() == Symbol.Type.VoidFunc ? Symbol.Type.NONE : Symbol.Type.NotArray;
         }
         return Symbol.Type.NONE;
     }
 
-    private List<Symbol.Type> visitFuncRParams(FuncRParamsNode funcRParams) {
+    /**
+     * Object[0] -> List<Symbol.Type>
+     * Object[0] -> ArrayList<IRValue> 实参集合
+     * */
+    private Object[] visitFuncRParams(FuncRParamsNode funcRParams) {
         /*-- FuncRParams → Exp { ',' Exp } --*/
+        Object[] ret = new Object[2];
         List<Symbol.Type> types = new ArrayList<>();
-        if (funcRParams == null) return types;
+        ArrayList<IRValue> args = new ArrayList<>();
+        ret[0] = types;
+        ret[1] = args;
+        if (funcRParams == null) return ret;
         for (ExpNode exp : funcRParams.getRParams()) {
             types.add(visitExp(exp));
+            args.add(curValue);
         }
-        return types;
+        return ret;
     }
 
     /*----------------------------------------------- Func End ---------------------------------------------------*/
@@ -684,14 +704,6 @@ public class Visitor {
 
     private Object[] visitLVal(LValNode lVal, boolean isLeft) {
         /*-- LVal → Ident ['[' Exp ']']  --*/
-        // 如果是左值，说明是赋值语句，如果不是数组，则直接使用；是数组，则需要指向该地址的指针(GEP）
-        //
-        // 如果是函数的参数且不为数组，那么不需要 load，可以直接使用
-        // 如果是函数的参数且是数组，那么要用的值需要先求出 index(GEP指令)，通过 load 加载出要用的值
-        //
-        // 如果是局部变量或全局变量，则需要 load 后使用
-        // 如果是常量，直接用对应的常量
-
         Map.Entry<String, Integer> entry = lVal.getIdentifier();
         String symbolName = entry.getKey();
         Symbol symbol = curTable.getSymbol(symbolName, entry.getValue());
@@ -699,45 +711,136 @@ public class Visitor {
         if (isValInArray) {
             visitExp(lVal.getExp());
             IRValue index = curValue;
-            IRValue val = symbol.getIRValue();
-
+            ArrayList<IRValue> ind = new ArrayList<>();
+            ind.add(index);
+            processLValArray2IR(symbol, ind, isLeft);
         } else {
-            IRValue val = symbol.getIRValue();
-            if (isLeft) {
-                // 非数组、是左值,之后要赋值给它
-                /* 和 symbol 存在一起的变量均为指针类型，直接返回即可 */
-                /* 如果是函数参数，那么不是指针类型，但是可以执行 = 赋值 */
-                curValue = val;
-            } else {
-                // 非左值、非数组
-                if (val.isParam()) {
-                    // 是参数，此处为值，直接使用
-                    curValue = val;
+            processLValSingle2IR(symbol, isLeft);
+        }
+        return new Object[]{entry.getKey(), entry.getValue(), isValInArray};
+    }
+
+    /**
+     * 处理 lVal 不是数组的情况
+     * symbol -> 标识符的符号
+     * */
+    private void processLValSingle2IR(Symbol symbol, boolean isLeft) {
+        IRValue val = symbol.getIRValue();
+        if (val.isParam()) { // 对于函数的参数
+            IRType type = val.getType();
+            if (!val.isAlloc()) {
+                IRAlloca alloca = new IRAlloca(type, "%_var" + irFuncEnv.getCounter());
+                curBlock.addInstruction(alloca);
+                IRStore store = new IRStore(val, alloca);
+                curBlock.addInstruction(store);
+                IRLoad load = new IRLoad(type, alloca);
+                load.setName("%_var" + irFuncEnv.getCounter());
+                curBlock.addInstruction(load);
+                load.setAlloc(true);
+                load.setParam(true);
+                symbol.setIRValue(alloca);
+                if (isLeft) {
+                    curValue = alloca;
                 } else {
-                    // 常量
-                    if (val instanceof IRConstant)
-                        curValue = val;
-                    else {
-                        // 是普通变量，需要 load
-                        IRType type = ((IRPtrType)val.getType()).getPointed();
-                        String name = "%_var" + irFuncEnv.getCounter();
-                        IRLoad load = new IRLoad(type, val);
-                        load.setName(name);
-                        curBlock.addInstruction(load);
-                        curValue = load;
-                        if (type == IRIntType.I8()) {
-                            // 需要类型转换到 I32 进行计算
-                            name = "%_var" + irFuncEnv.getCounter();
-                            IRZext zext = new IRZext(load, IRIntType.I32());
-                            zext.setName(name);
-                            curBlock.addInstruction(zext);
-                            curValue = zext;
-                        }
-                    }
+                    curValue = load;
+                    if (type == IRIntType.I8())
+                        typeTrans(load, IRIntType.I32());
+                }
+            } else {
+                if (isLeft) {
+                    curValue = val; // alloc
+                } else {
+                    type = ((IRPtrType)val.getType()).getPointed();
+                    IRLoad load = new IRLoad(type, val);
+                    load.setName("%_var" + irFuncEnv.getCounter());
+                    curBlock.addInstruction(load);
+                    curValue = load;
+                    if (type == IRIntType.I8())
+                        typeTrans(val, IRIntType.I32());
+                }
+            }
+        } else {
+            // 非数组、非参数
+            // 常量
+            if (val instanceof IRConstant || isLeft)
+                curValue = val;
+            else {
+                // 是普通变量，需要 load
+                IRType type = ((IRPtrType)val.getType()).getPointed();
+                IRLoad load = new IRLoad(type, val);
+                load.setName("%_var" + irFuncEnv.getCounter());
+                curBlock.addInstruction(load);
+                curValue = load;
+                if (type == IRIntType.I8()) {
+                    // 需要类型转换到 I32 进行计算
+                    typeTrans(load, IRIntType.I32());
                 }
             }
         }
-        return new Object[]{entry.getKey(), entry.getValue(), isValInArray};
+    }
+
+    /**
+     * 处理 lVal 是数组的情况
+     * symbol -> 数组的符号
+     * */
+    private void processLValArray2IR(Symbol symbol, ArrayList<IRValue> ind, boolean isLeft) {
+        IRValue val = symbol.getIRValue();
+        if (val.isParam()) {
+            IRGetElePtr gep = null;
+            IRLoad load = null;
+            if (!val.isAlloc()) {
+                IRAlloca alloca = new IRAlloca(val.getType(), "%_var" + irFuncEnv.getCounter());
+                curBlock.addInstruction(alloca);
+                IRStore store = new IRStore(val, alloca);
+                curBlock.addInstruction(store);
+                load = new IRLoad(val.getType(), alloca);
+                load.setName("%_var" + irFuncEnv.getCounter());
+                curBlock.addInstruction(load);
+                load.setAlloc(true);
+                load.setParam(true);
+                symbol.setIRValue(load);
+                // GEP
+                gep = new IRGetElePtr(load, ind);
+            } else {
+                gep = new IRGetElePtr(val, ind);
+            }
+
+            gep.setName("%_var" + irFuncEnv.getCounter());
+            curBlock.addInstruction(gep);
+            if (isLeft) {
+                // 是左值，说明要赋值，curValue 应该是一个指针
+                curValue = gep;
+            } else {
+                IRType eleType = ((IRPtrType)gep.getType()).getPointed();
+                load = new IRLoad(eleType, gep);
+                load.setName("%_var" + irFuncEnv.getCounter());
+                curBlock.addInstruction(load);
+                curValue = load;
+                if (eleType == IRIntType.I8())
+                    typeTrans(load, IRIntType.I32());
+            }
+        } else {
+            IRGetElePtr gep = new IRGetElePtr(val, ind);
+            gep.setName("%_var" + irFuncEnv.getCounter());
+            curBlock.addInstruction(gep);
+            if (isLeft) {
+                curValue = gep;
+            } else {
+                IRLoad load = new IRLoad(((IRPtrType)gep.getType()).getPointed(), gep);
+                load.setName("%_var" + irFuncEnv.getCounter());
+                curBlock.addInstruction(load);
+                curValue = load;
+                if (load.getType() == IRIntType.I8())
+                    typeTrans(load, IRIntType.I32());
+            }
+        }
+    }
+
+    private void typeTrans(IRValue toTrans, IRType target) {
+        IRZext zext = new IRZext(toTrans, target);
+        zext.setName("%_var" + irFuncEnv.getCounter());
+        curBlock.addInstruction(zext);
+        curValue = zext;
     }
 
 }

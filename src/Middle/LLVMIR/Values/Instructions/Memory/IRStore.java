@@ -1,9 +1,7 @@
 package Middle.LLVMIR.Values.Instructions.Memory;
 
-import Middle.LLVMIR.IRTypes.IRType;
 import Middle.LLVMIR.IRTypes.IRVoidType;
 import Middle.LLVMIR.IRUse;
-import Middle.LLVMIR.IRUser;
 import Middle.LLVMIR.IRValue;
 import Middle.LLVMIR.Values.IRConstant;
 import Middle.LLVMIR.Values.Instructions.IRInstrType;
@@ -19,7 +17,7 @@ public class IRStore extends IRInstruction {
     private IRValue valOfPtr;
 
     public IRStore(IRValue val2Write, IRValue valOfPtr) {
-        super(IRInstrType.Store, IRVoidType.getVoid(), 2);
+        super(IRInstrType.Store, IRVoidType.Void(), 2);
         this.val2Write = val2Write;
         this.valOfPtr = valOfPtr;
         setUseInit();

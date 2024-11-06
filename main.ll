@@ -18,15 +18,17 @@ define dso_local i32 @add(i32 %0, i32 %1, i32* %2) #0 {
   %7 = load i32, i32* %4, align 4
   %8 = load i32, i32* %4, align 4
   %9 = add nsw i32 %7, %8
-  store i32 %9, i32* %4, align 4
   %10 = load i32, i32* %4, align 4
-  %11 = load i32, i32* %5, align 4
-  %12 = add nsw i32 %10, %11
-  %13 = load i32*, i32** %6, align 8
-  %14 = getelementptr inbounds i32, i32* %13, i64 3
-  %15 = load i32, i32* %14, align 4
-  %16 = add nsw i32 %12, %15
-  ret i32 %16
+  %11 = add nsw i32 %9, %10
+  store i32 %11, i32* %4, align 4
+  %12 = load i32, i32* %4, align 4
+  %13 = load i32, i32* %5, align 4
+  %14 = add nsw i32 %12, %13
+  %15 = load i32*, i32** %6, align 8
+  %16 = getelementptr inbounds i32, i32* %15, i64 3
+  %17 = load i32, i32* %16, align 4
+  %18 = add nsw i32 %14, %17
+  ret i32 %18
 }
 
 ; Function Attrs: noinline nounwind optnone uwtable

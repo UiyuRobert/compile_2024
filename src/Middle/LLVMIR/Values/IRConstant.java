@@ -7,7 +7,7 @@ public class IRConstant extends IRValue {
     private int value;
 
     public IRConstant(IRType type, int value) {
-        super(type, "");
+        super(type, String.valueOf(value));
         this.value = value;
     }
 

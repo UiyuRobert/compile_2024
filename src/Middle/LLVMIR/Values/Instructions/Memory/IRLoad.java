@@ -12,11 +12,21 @@ import Middle.LLVMIR.Values.Instructions.IRInstruction;
  * 其中，<type>是要读取的数据的类型，<ptr>是指向要读取数据的内存块的指针
  * */
 public class IRLoad extends IRInstruction {
+    private IRValue ptr;
 
-    public IRLoad( IRType irType, IRValue ptr) {
+    public IRLoad(IRType irType, IRValue ptr) {
         super(IRInstrType.Load, irType, 1);
+        this.ptr = ptr;
         IRUse use = new IRUse(this, ptr, 0);
         this.addUse(use);
         ptr.addUse(use);
+    }
+
+    public String getIR() {
+        StringBuilder builder = new StringBuilder();
+        builder.append(this.getName()).append(" = load ");
+        builder.append(ptr.getType()).append(" ");
+        builder.append(ptr.getName()).append("\n");
+        return builder.toString();
     }
 }

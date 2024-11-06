@@ -25,6 +25,10 @@ public class IRFunction extends IRValue {
         blocks.add(block);
     }
 
+    public IRType getReturnType() {
+        return ((IRFuncType)getType()).getReturnType();
+    }
+
     public String processParams(ArrayList<IRValue> params) {
         StringBuilder ret = new StringBuilder();
         if (!params.isEmpty()) {

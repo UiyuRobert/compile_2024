@@ -2,7 +2,7 @@ char s[10];
 int dd[10] = {4,5};
 
 int add(int x, int y, int tt[]) {
-    x = x + x;
+    x = x + x + x;
     return x + y + tt[3];
 }
 
