@@ -32,10 +32,10 @@ public class IRGetElePtr extends IRInstruction {
 
     private static IRType getEleTy(IRValue structVal) {
         IRType eleType = ((IRPtrType)structVal.getType()).getPointed();
-        if (eleType == IRIntType.getI32())
-            return IRIntType.getI32();
-        else if (eleType == IRIntType.getI8())
-            return IRIntType.getI8();
+        if (eleType == IRIntType.I32())
+            return IRIntType.I32();
+        else if (eleType == IRIntType.I8())
+            return IRIntType.I8();
         else if (eleType instanceof IRArrayType)
             return ((IRArrayType) eleType).getElementType();
         else {

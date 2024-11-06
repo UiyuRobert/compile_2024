@@ -1,8 +1,10 @@
-/* int add(int x, int y, int tt[]) {
-    return x + y + tt[3];
-} */
 char s[10];
 int dd[10] = {4,5};
+
+int add(int x, int y, int tt[]) {
+    x = x + x;
+    return x + y + tt[3];
+}
 
 int main() {
     const int b = 2;
@@ -10,5 +12,6 @@ int main() {
     s[2] = 9;
     int c;
     c = dd[0];
-    return 0;
+    c = add(b, dd[1], c_);
+    return c;
 }

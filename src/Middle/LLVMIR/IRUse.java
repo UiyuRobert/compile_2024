@@ -1,6 +1,8 @@
 package Middle.LLVMIR;
 
-public class IRUse {
+import java.io.*;
+
+public class IRUse implements Serializable {
     private int operandPst; // 操作数位置，靠前的为 1
     private IRUser user;
     private IRValue value;
@@ -9,5 +11,22 @@ public class IRUse {
         this.user = user;
         this.value = value;
         this.operandPst = operandPst;
+    }
+
+    public IRUse deepClone() {
+        IRUse cloneUse = null;
+        try {
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            ObjectOutputStream oos = null;
+            oos = new ObjectOutputStream(bos);
+            oos.writeObject(this);
+            // 反序列化
+            ByteArrayInputStream bis = new ByteArrayInputStream(bos.toByteArray());
+            ObjectInputStream ois = new ObjectInputStream(bis);
+            cloneUse = (IRUse) ois.readObject();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return cloneUse;
     }
 }

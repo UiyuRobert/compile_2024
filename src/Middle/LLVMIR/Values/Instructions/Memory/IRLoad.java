@@ -1,6 +1,8 @@
 package Middle.LLVMIR.Values.Instructions.Memory;
 
 import Middle.LLVMIR.IRTypes.IRType;
+import Middle.LLVMIR.IRUse;
+import Middle.LLVMIR.IRValue;
 import Middle.LLVMIR.Values.Instructions.IRInstrType;
 import Middle.LLVMIR.Values.Instructions.IRInstruction;
 
@@ -11,7 +13,10 @@ import Middle.LLVMIR.Values.Instructions.IRInstruction;
  * */
 public class IRLoad extends IRInstruction {
 
-    public IRLoad(IRInstrType instrType, IRType irType, int operandCnt) {
-        super(instrType, irType, operandCnt);
+    public IRLoad( IRType irType, IRValue ptr) {
+        super(IRInstrType.Load, irType, 1);
+        IRUse use = new IRUse(this, ptr, 0);
+        this.addUse(use);
+        ptr.addUse(use);
     }
 }

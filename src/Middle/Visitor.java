@@ -9,9 +9,10 @@ import Middle.LLVMIR.Values.*;
 import Middle.LLVMIR.IRModule;
 import Middle.LLVMIR.Values.Instructions.IRBinaryInstr;
 import Middle.LLVMIR.Values.Instructions.IRInstrType;
-import Middle.LLVMIR.Values.Instructions.IRInstruction;
+import Middle.LLVMIR.Values.Instructions.IRZext;
 import Middle.LLVMIR.Values.Instructions.Memory.IRAlloca;
 import Middle.LLVMIR.Values.Instructions.Memory.IRGetElePtr;
+import Middle.LLVMIR.Values.Instructions.Memory.IRLoad;
 import Middle.LLVMIR.Values.Instructions.Memory.IRStore;
 import Middle.Symbols.*;
 import java.util.ArrayList;
@@ -74,11 +75,11 @@ public class Visitor {
 
     private IRType calType(String bType, int size) {
         if (size != 0) {
-            if (bType.equals("Int")) return new IRArrayType(IRIntType.getI32(), size);
-             else return new IRArrayType(IRIntType.getI8(), size);
+            if (bType.equals("Int")) return new IRArrayType(IRIntType.I32(), size);
+             else return new IRArrayType(IRIntType.I8(), size);
         } else {
-            if (bType.equals("Int")) return IRIntType.getI32();
-            else return IRIntType.getI8();
+            if (bType.equals("Int")) return IRIntType.I32();
+            else return IRIntType.I8();
         }
     }
 
@@ -91,7 +92,7 @@ public class Visitor {
     private IRType calIRFuncType(FuncTypeNode funcType) {
         String type = funcType.getFuncType();
         return type.equals("void") ? IRVoidType.getVoid() :
-                type.equals("char") ? IRIntType.getI8() : IRIntType.getI32();
+                type.equals("char") ? IRIntType.I8() : IRIntType.I32();
     }
 
     /*----------------------------------------------- CompUnit Start ---------------------------------------------------*/
@@ -122,7 +123,7 @@ public class Visitor {
     private void visitMainFunc(MainFucDefNode mainFucDefNode) {
         /*-- MainFuncDef → 'int' 'main' '(' ')' Block --*/
         curTable = new SymbolTable(curTable, ++domainNumber);
-        IRFuncType funcType = new IRFuncType(IRIntType.getI32());
+        IRFuncType funcType = new IRFuncType(IRIntType.I32());
         irFuncEnv = new IRFunction(funcType, "@main");
         visitFuncBlock(mainFucDefNode.getBlock(), Symbol.Type.IntFunc);
         irModule.addFunction(irFuncEnv);
@@ -327,11 +328,11 @@ public class Visitor {
                 // 如果是数组，必须将数组存到内存里
                 IRAlloca alloca = new IRAlloca(irType, constArray);
                 curBlock.addInstruction(alloca);
-                IRValue first = new IRValue(new IRPtrType(IRIntType.getI32()), constArray.getName()); // 数组首元素的地址
+                IRValue first = new IRValue(new IRPtrType(IRIntType.I32()), constArray.getName()); // 数组首元素的地址
                 for (int i = 0; i < constArray.size(); ++i) {
-                    IRValue addr = new IRValue(new IRPtrType(IRIntType.getI32()), "%_var" + irFuncEnv.getCounter());
+                    IRValue addr = new IRValue(new IRPtrType(IRIntType.I32()), "%_var" + irFuncEnv.getCounter());
                     ArrayList<IRValue> index = new ArrayList<>();
-                    index.add(new IRConstant(IRIntType.getI32(), i));
+                    index.add(new IRConstant(IRIntType.I32(), i));
                     IRGetElePtr gep = new IRGetElePtr(addr, first, index); // 生成写入的地址
                     IRValue toWrite = constArray.getValByIndex(i); // 生成写入的数据
                     IRStore store = new IRStore(toWrite, addr); // store
@@ -453,10 +454,10 @@ public class Visitor {
 
     private IRType symbolTy2IRTy(Symbol.Type type) {
         switch (type) {
-            case Char: return IRIntType.getI8();
-            case Int: return IRIntType.getI32();
-            case CharArray: return new IRArrayType(IRIntType.getI8(), -1);
-            case IntArray: return new IRArrayType(IRIntType.getI32(), -1);
+            case Char: return IRIntType.I8();
+            case Int: return IRIntType.I32();
+            case CharArray: return new IRPtrType(IRIntType.I8());
+            case IntArray: return new IRPtrType(IRIntType.I32());
             default:
                 System.out.println("FUCK ! NOT HERE\n");
                 return null;
@@ -478,8 +479,10 @@ public class Visitor {
             List<Symbol> params = visitFuncFParams(funcDef.getFuncFParams());
             /* 添加参数 */
             for (Symbol param : params) {
+                // 普通类型传值，数组类型传指针
                 IRType irType = symbolTy2IRTy(param.getType()); // 参数的IR类型
                 IRValue p = new IRValue(irType, "%_param" + irFuncEnv.getCounter()); // 参数IR
+                p.setParam(true);
                 funcType.addParam(p);
                 param.setIRValue(p);
             }
@@ -596,9 +599,9 @@ public class Visitor {
             IRBinaryInstr addInstr = null;
             IRValue right = curValue;
             if (entry.getValue().equals("+"))
-                addInstr = new IRBinaryInstr(IRInstrType.Add, IRIntType.getI32(), left, right);
+                addInstr = new IRBinaryInstr(IRInstrType.Add, IRIntType.I32(), left, right);
             else if (entry.getValue().equals("-"))
-                addInstr = new IRBinaryInstr(IRInstrType.Sub, IRIntType.getI32(), left, right);
+                addInstr = new IRBinaryInstr(IRInstrType.Sub, IRIntType.I32(), left, right);
             else System.out.println("FUCK ! NOT ADD OR SUB");
             String name = "%_var" + irFuncEnv.getCounter();
             addInstr.setName(name);
@@ -618,11 +621,11 @@ public class Visitor {
             IRValue right = curValue;
             IRBinaryInstr mulInstr = null;
             if (entry.getValue().equals("*"))
-                mulInstr = new IRBinaryInstr(IRInstrType.Mul, IRIntType.getI32(), left, right);
+                mulInstr = new IRBinaryInstr(IRInstrType.Mul, IRIntType.I32(), left, right);
             else if (entry.getValue().equals("/"))
-                mulInstr = new IRBinaryInstr(IRInstrType.Div, IRIntType.getI32(), left, right);
+                mulInstr = new IRBinaryInstr(IRInstrType.Div, IRIntType.I32(), left, right);
             else if (entry.getValue().equals("%"))
-                mulInstr = new IRBinaryInstr(IRInstrType.Mod, IRIntType.getI32(), left, right);
+                mulInstr = new IRBinaryInstr(IRInstrType.Mod, IRIntType.I32(), left, right);
             else System.out.println("FUCK ! NOT * / %");
             String name = "%_var" + irFuncEnv.getCounter();
             mulInstr.setName(name);
@@ -639,10 +642,10 @@ public class Visitor {
         else if (unaryExp.isOpUnary()) {
             Map.Entry<UnaryExpNode, String> entry = unaryExp.getOpUnary();
             Symbol.Type type = visitUnaryExp(entry.getKey());
-            IRValue left = new IRConstant(IRIntType.getI32(), 0);
+            IRValue left = new IRConstant(IRIntType.I32(), 0);
             IRValue right = curValue;
             if (entry.getValue().equals("-")) {
-                IRBinaryInstr addInstr = new IRBinaryInstr(IRInstrType.Sub, IRIntType.getI32(), left, right);
+                IRBinaryInstr addInstr = new IRBinaryInstr(IRInstrType.Sub, IRIntType.I32(), left, right);
                 String name = "%_var" + irFuncEnv.getCounter();
                 addInstr.setName(name);
                 curBlock.addInstruction(addInstr);
@@ -670,10 +673,10 @@ public class Visitor {
             // 字面量
             if (content instanceof NumberNode) {
                 int val = ((NumberNode) content).getValue();
-                curValue = new IRConstant(IRIntType.getI32(), val);
+                curValue = new IRConstant(IRIntType.I32(), val);
             } else {
                 int val = ((CharacterNode) content).getValue();
-                curValue = new IRConstant(IRIntType.getI32(), val);
+                curValue = new IRConstant(IRIntType.I32(), val);
             }
             return Symbol.Type.NotArray;
         }
@@ -681,18 +684,57 @@ public class Visitor {
 
     private Object[] visitLVal(LValNode lVal, boolean isLeft) {
         /*-- LVal → Ident ['[' Exp ']']  --*/
+        // 如果是左值，说明是赋值语句，如果不是数组，则直接使用；是数组，则需要指向该地址的指针(GEP）
+        //
+        // 如果是函数的参数且不为数组，那么不需要 load，可以直接使用
+        // 如果是函数的参数且是数组，那么要用的值需要先求出 index(GEP指令)，通过 load 加载出要用的值
+        //
+        // 如果是局部变量或全局变量，则需要 load 后使用
+        // 如果是常量，直接用对应的常量
+
         Map.Entry<String, Integer> entry = lVal.getIdentifier();
         String symbolName = entry.getKey();
         Symbol symbol = curTable.getSymbol(symbolName, entry.getValue());
         boolean isValInArray = lVal.isValInArray();
         if (isValInArray) {
             visitExp(lVal.getExp());
+            IRValue index = curValue;
+            IRValue val = symbol.getIRValue();
 
         } else {
-            if (isLeft)
-                curValue = symbol.getIRValue();
-            else {
-
+            IRValue val = symbol.getIRValue();
+            if (isLeft) {
+                // 非数组、是左值,之后要赋值给它
+                /* 和 symbol 存在一起的变量均为指针类型，直接返回即可 */
+                /* 如果是函数参数，那么不是指针类型，但是可以执行 = 赋值 */
+                curValue = val;
+            } else {
+                // 非左值、非数组
+                if (val.isParam()) {
+                    // 是参数，此处为值，直接使用
+                    curValue = val;
+                } else {
+                    // 常量
+                    if (val instanceof IRConstant)
+                        curValue = val;
+                    else {
+                        // 是普通变量，需要 load
+                        IRType type = ((IRPtrType)val.getType()).getPointed();
+                        String name = "%_var" + irFuncEnv.getCounter();
+                        IRLoad load = new IRLoad(type, val);
+                        load.setName(name);
+                        curBlock.addInstruction(load);
+                        curValue = load;
+                        if (type == IRIntType.I8()) {
+                            // 需要类型转换到 I32 进行计算
+                            name = "%_var" + irFuncEnv.getCounter();
+                            IRZext zext = new IRZext(load, IRIntType.I32());
+                            zext.setName(name);
+                            curBlock.addInstruction(zext);
+                            curValue = zext;
+                        }
+                    }
+                }
             }
         }
         return new Object[]{entry.getKey(), entry.getValue(), isValInArray};

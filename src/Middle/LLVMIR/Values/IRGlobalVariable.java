@@ -2,6 +2,7 @@ package Middle.LLVMIR.Values;
 
 import Middle.LLVMIR.IRTypes.IRArrayType;
 import Middle.LLVMIR.IRTypes.IRIntType;
+import Middle.LLVMIR.IRTypes.IRPtrType;
 import Middle.LLVMIR.IRTypes.IRType;
 import Middle.LLVMIR.IRValue;
 
@@ -16,7 +17,7 @@ public class IRGlobalVariable extends IRValue {
     private int length;
 
     public IRGlobalVariable(IRType type, String name, boolean isConst) {
-        super(type, "@" + name);
+        super(new IRPtrType(type), "@" + name);
         this.isConst = isConst;
         inits = new ArrayList<>(); // 为空说明非全局且无初始值
         length = 0;
@@ -37,7 +38,7 @@ public class IRGlobalVariable extends IRValue {
         if (this.getType() instanceof IRArrayType) {
             IRType eleType = ((IRArrayType) this.getType()).getElementType();
             sb.append(this.getType().toString()).append(" ");
-            if (eleType == IRIntType.getI8()) {
+            if (eleType == IRIntType.I8()) {
                 if (inits.isEmpty() && length != 0)
                     sb.append("zeroinitializer");
                 else {

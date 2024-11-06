@@ -13,9 +13,9 @@ public class IRIntType implements IRType {
         this.bits = bits;
     }
 
-    public static IRIntType getI32(){ return I32; }
+    public static IRIntType I32(){ return I32; }
 
-    public static IRIntType getI8(){ return I8; }
+    public static IRIntType I8(){ return I8; }
 
     public static IRIntType getI1(){ return I1; }
 
