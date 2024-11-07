@@ -45,7 +45,7 @@ public class Compiler {
             errorOutput();
         } else {
             normalOutput(result);
-            System.out.println(module.getIR());
+            // System.out.println(result);
         }
     }
 
@@ -72,7 +72,7 @@ public class Compiler {
     }
 
     private static void normalOutput(String output) {
-        String outputRightFileName = "llvmir.txt";
+        String outputRightFileName = "llvm_ir.txt";
         try {
             BufferedWriter writer = new BufferedWriter(new FileWriter(outputRightFileName));
             writer.write(output);

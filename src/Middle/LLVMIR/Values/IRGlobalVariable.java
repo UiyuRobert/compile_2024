@@ -38,7 +38,7 @@ public class IRGlobalVariable extends IRValue {
         String name = privateCount == 0 ? "@.str" : "@.str." + privateCount;
         privateCount++;
         this.setName(name);
-        this.content = content;
+        this.content = content.replace("\n", "\\0A");
     }
 
     public void setLength(int length) { this.length = length; }
@@ -57,7 +57,7 @@ public class IRGlobalVariable extends IRValue {
         sb.append(this.getName()).append(" = ");
         sb.append("private unnamed_addr constant ");
         sb.append(elementTy.toString()).append(" ");
-        sb.append("c").append(content).append(", align 1\n");
+        sb.append("c\"").append(content).append("\", align 1\n");
         return sb.toString();
     }
 

@@ -15,7 +15,10 @@ public class Symbol {
     private Type type;
     private String name;
     private int lineNumber;
+
     private IRValue value;
+    private boolean isArray = false;
+    private IRValue first;
 
     public Symbol(Type type, String name, int lineNumber) {
         this.name = name;
@@ -24,13 +27,26 @@ public class Symbol {
         value = null;
     }
 
-    public Type getType() {
-        return type;
+    public void setIRValue(IRValue value) {
+        this.value = value;
     }
 
-    public void setIRValue(IRValue value) { this.value = value; }
+    public void setArrayFirst(IRValue first) {
+        this.first = first;
+        isArray = true;
+    }
+
+    public boolean isArray() { return isArray; }
 
     public IRValue getIRValue() { return value; }
+
+    public IRValue getFirst() { return first; }
+
+    public String getName() { return name; }
+
+    public int getLineNumber() { return lineNumber; }
+
+    public Type getType() { return type; }
 
     public Type getRefType(boolean isValInArray) {
         switch (type) {
@@ -51,10 +67,4 @@ public class Symbol {
                 return Type.NONE;
         }
     }
-
-    public String getName() {
-        return name;
-    }
-
-    public int getLineNumber() { return lineNumber; }
 }

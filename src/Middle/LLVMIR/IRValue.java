@@ -29,19 +29,24 @@ public class IRValue implements Serializable {
 
     public String getName() { return name; }
 
+    public ArrayList<IRUse> getUseList() { return useList; }
+
+
     public void addUse(IRUse use) { useList.add(use); }
 
     public void setName(String name) { this.name = name; }
 
     public void setParam(boolean isParam) { this.isParam = isParam; }
 
-    public boolean isParam() { return isParam; }
-
     public void setAlloc(boolean isAlloc) { this.isAlloc = isAlloc; }
+
+    public void setType(IRType type) { this.type = type; }
+
+
+    public boolean isParam() { return isParam; }
 
     public boolean isAlloc() { return isAlloc; }
 
-    public ArrayList<IRUse> getUseList() { return useList; }
 
     public IRValue deepClone() {
         IRValue cloneVal = null;

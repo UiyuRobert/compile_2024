@@ -75,7 +75,7 @@ public class IRCall extends IRInstruction {
             if (arguments.size() > 1) {
                 for (int i = 1; i < arguments.size(); i++)
                     stringBuilder.append(", ").append(arguments.get(i).getType())
-                            .append(" ").append(first.getName());
+                            .append(" ").append(arguments.get(i).getName());
             }
         } else if (speArg != null) {
             // putstr
@@ -84,8 +84,7 @@ public class IRCall extends IRInstruction {
             else
                 // putint, putch
                 stringBuilder.append(speArg.getType()).append(" ").append(speArg.getName());
-        } else
-            System.out.println("FUCK ! CALL WTF ?");
+        }
         // getint getchar
         stringBuilder.append(")\n");
         return stringBuilder.toString();

@@ -1,16 +1,14 @@
-char s[10];
-int dd[10] = {4,5};
+int a[3 + 3] = {1, 2, 3, 4, 5, 6};
+int foo(int x, int y[]) {
+    return x + y[2];
+}
 
-void add(int x, int y, int tt[]) {
-    x = x + x + x;
+int fee(int x, int y[]) {
+    return foo(x, y);
 }
 
 int main() {
-    const int b = 2;
-    const int c_[4] = {3,5,6,0};
-    s[2] = 9;
-    int c;
-    c = dd[0];
-    add(b, dd[1], c_);
-    return c;
+    int x = fee(a[4], a);
+
+    return 0;
 }

@@ -26,6 +26,7 @@ public class IRIntType implements IRType {
     public String toString() {
         if(bits == 32) return "i32";
         else if(bits == 8) return "i8";
+        else if(bits == 64) return "i64";
         else return "bool";
     }
 }

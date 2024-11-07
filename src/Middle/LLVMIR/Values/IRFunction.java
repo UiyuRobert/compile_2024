@@ -7,12 +7,12 @@ import Middle.LLVMIR.IRValue;
 import java.util.ArrayList;
 
 public class IRFunction extends IRValue {
-    private int counter = 0;
+    private int counter;
     private ArrayList<IRBasicBlock> blocks; // 函数内部基本块集合
 
     public IRFunction(IRType type, String name) {
-        super(type, name); // 此处的 Type 是函数返回值类型
-        counter = 0;
+        super(type, name); //
+        counter = 1;
         blocks = new ArrayList<>();
     }
 

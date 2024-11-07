@@ -1,5 +1,6 @@
 package Middle.LLVMIR.Values.Instructions.Memory;
 
+import Middle.LLVMIR.IRTypes.IRPtrType;
 import Middle.LLVMIR.IRTypes.IRVoidType;
 import Middle.LLVMIR.IRUse;
 import Middle.LLVMIR.IRValue;
@@ -34,6 +35,9 @@ public class IRStore extends IRInstruction {
 
     public String getIR() {
         StringBuilder builder = new StringBuilder();
+        if (val2Write instanceof IRConstant) {
+            val2Write.setType(((IRPtrType)valOfPtr.getType()).getPointed());
+        }
         builder.append("store ").append(val2Write.getType()).append(" ");
         if (val2Write instanceof IRConstant)
             builder.append(((IRConstant) val2Write).getValue());
