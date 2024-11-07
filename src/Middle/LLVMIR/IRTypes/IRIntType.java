@@ -5,6 +5,7 @@ package Middle.LLVMIR.IRTypes;
  * */
 public class IRIntType implements IRType {
     private int bits; // 位数
+    private static final IRIntType I64 = new IRIntType(64);
     private static final IRIntType I32 = new IRIntType(32); // int
     private static final IRIntType I8 = new IRIntType(8); // char
     private static final IRIntType I1 = new IRIntType(1); // bool
@@ -13,11 +14,13 @@ public class IRIntType implements IRType {
         this.bits = bits;
     }
 
-    public static IRIntType I32(){ return I32; }
+    public static IRIntType I64() { return I64; }
 
-    public static IRIntType I8(){ return I8; }
+    public static IRIntType I32() { return I32; }
 
-    public static IRIntType getI1(){ return I1; }
+    public static IRIntType I8() { return I8; }
+
+    public static IRIntType I1() { return I1; }
 
     @Override
     public String toString() {

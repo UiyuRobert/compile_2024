@@ -63,6 +63,15 @@ public class StmtNode implements Node {
 
         public ExpNode getExpNode(){ return (ExpNode) expNode_; }
 
+        public String getFuncName() {
+            if (getFuncTerminal != null)
+                return getFuncTerminal.getValue();
+            else {
+                System.out.println("FUCK ! FUNCNAME IS NULL !");
+                return null;
+            }
+        }
+
         @Override
         public String toString() {
             StringBuilder sb = new StringBuilder(lValNode.toString());
@@ -242,6 +251,8 @@ public class StmtNode implements Node {
     }
 
     public LValNode getLVal() { return lValStmt.getLValNode(); }
+
+    public String getFuncName() { return lValStmt.getFuncName(); }
 
     public StmtNode(Token printfTerminal, Token lparenTerminal, Token stringTerminal,
                     List<Map.Entry<Node, Token>> expNodes, Token rparenTerminal, Token semicolonTerminal) {

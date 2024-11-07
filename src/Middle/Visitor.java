@@ -15,6 +15,7 @@ import Middle.LLVMIR.Values.Instructions.Memory.IRAlloca;
 import Middle.LLVMIR.Values.Instructions.Memory.IRGetElePtr;
 import Middle.LLVMIR.Values.Instructions.Memory.IRLoad;
 import Middle.LLVMIR.Values.Instructions.Memory.IRStore;
+import Middle.LLVMIR.Values.Instructions.Terminal.IRReturn;
 import Middle.Symbols.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -154,11 +155,17 @@ public class Visitor {
         }
         isFinalStmt = false;
         /* 返回 */
-        if (!hasReturn && (funcEnv == Symbol.Type.CharFunc || funcEnv == Symbol.Type.IntFunc))
-            ErrorHandling.processSemanticError("g", funcBlock.getRbraceLineNum());
+        if (!hasReturn) {
+            if (funcEnv == Symbol.Type.CharFunc || funcEnv == Symbol.Type.IntFunc)
+                ErrorHandling.processSemanticError("g", funcBlock.getRbraceLineNum());
+            else {
+                IRReturn irReturn = new IRReturn();
+                curBlock.addInstruction(irReturn);
+                irFuncEnv.addBlock(curBlock);
+            }
+        }
         hasReturn = false;
         funcEnv = Symbol.Type.NONE;
-        irFuncEnv.addBlock(curBlock);
         curTable = curTable.getParent();
     }
 
@@ -229,6 +236,33 @@ public class Visitor {
         List<ExpNode> exps = printStmt.getPrintExp();
         if (forms.size() != exps.size())
             ErrorHandling.processSemanticError("l", printStmt.getPrintLineNum());
+
+        String[] segments = format.split("(?=%[cd])|(?<=%[cd])");
+        for (int i = 0,j = 0; i < segments.length; ++i) {
+            if (segments[i].equals("%c") || segments[i].equals("%d")) {
+                visitExp(exps.get(j++));
+                IRValue toPrint = curValue;
+                IRCall call = null;
+                if (segments[i].equals("%c")) {
+                    toPrint = typeTrans(toPrint, IRIntType.I8());
+                    call = new IRCall("putch", toPrint);
+                } else
+                    call = new IRCall("putint", toPrint);
+
+                curBlock.addInstruction(call);
+            } else {
+                String content = segments[i] + "\\00";
+                IRArrayType arrayType = new IRArrayType(IRIntType.I8(), segments[i].length() + 1);
+                IRGlobalVariable strConst = new IRGlobalVariable(arrayType, content);
+                irModule.addStrPrivate(strConst);
+                ArrayList<IRValue> indexes = new ArrayList<>();
+                indexes.add(new IRConstant(IRIntType.I64(), 0));
+                indexes.add(new IRConstant(IRIntType.I64(), 0));
+                IRGetElePtr gep = new IRGetElePtr(strConst, indexes);
+                IRCall call = new IRCall("putstr", gep);
+                curBlock.addInstruction(call);
+            }
+        }
         for (ExpNode exp : exps)
             visitExp(exp);
     }
@@ -246,8 +280,16 @@ public class Visitor {
     private void visitFuncStmt(StmtNode funcStmt) {
         /*-- LVal '=' 'getint''('')'';' |  LVal '=' 'getchar''('')''; --*/
         Object[] ident = visitLVal(funcStmt.getLVal(), true);
+        IRValue left = curValue;
         if (canBeUpdate((String) ident[0], (int) ident[1])) {
-            /* TODO */
+            IRCall call = new IRCall(funcStmt.getFuncName());
+            call.setName("%_var" + irFuncEnv.getCounter());
+            curBlock.addInstruction(call);
+            IRValue toWrite = call;
+            if (((IRPtrType)left.getType()).getPointed() == IRIntType.I8())
+                toWrite = typeTrans(call, IRIntType.I8());
+            IRStore store = new IRStore(toWrite, left);
+            curBlock.addInstruction(store);
         }
     }
 
@@ -271,6 +313,14 @@ public class Visitor {
             visitExp(returnStmt.getExp());
             if (funcEnv == Symbol.Type.VoidFunc)
                 ErrorHandling.processSemanticError("f", returnStmt.getRetLineNum());
+            IRValue retVal = curValue;
+            IRReturn ret = new IRReturn(retVal);
+            curBlock.addInstruction(ret);
+            irFuncEnv.addBlock(curBlock);
+        } else {
+            IRReturn ret = new IRReturn();
+            curBlock.addInstruction(ret);
+            irFuncEnv.addBlock(curBlock);
         }
     }
 
@@ -670,6 +720,8 @@ public class Visitor {
                 addInstr.setName(name);
                 curBlock.addInstruction(addInstr);
                 curValue = addInstr;
+            } else if (entry.getValue().equals("!")) {
+                /* TODO */
             }
             return type;
         }
@@ -744,7 +796,7 @@ public class Visitor {
                 } else {
                     curValue = load;
                     if (type == IRIntType.I8())
-                        typeTrans(load, IRIntType.I32());
+                        curValue = typeTrans(load, IRIntType.I32());
                 }
             } else {
                 if (isLeft) {
@@ -756,7 +808,7 @@ public class Visitor {
                     curBlock.addInstruction(load);
                     curValue = load;
                     if (type == IRIntType.I8())
-                        typeTrans(val, IRIntType.I32());
+                        curValue = typeTrans(val, IRIntType.I32());
                 }
             }
         } else {
@@ -773,7 +825,7 @@ public class Visitor {
                 curValue = load;
                 if (type == IRIntType.I8()) {
                     // 需要类型转换到 I32 进行计算
-                    typeTrans(load, IRIntType.I32());
+                    curValue = typeTrans(load, IRIntType.I32());
                 }
             }
         }
@@ -793,6 +845,7 @@ public class Visitor {
                 curBlock.addInstruction(alloca);
                 IRStore store = new IRStore(val, alloca);
                 curBlock.addInstruction(store);
+                // 此时的 load 是指向数组首地址的指针 (i32* / i8*)
                 load = new IRLoad(val.getType(), alloca);
                 load.setName("%_var" + irFuncEnv.getCounter());
                 curBlock.addInstruction(load);
@@ -817,9 +870,10 @@ public class Visitor {
                 curBlock.addInstruction(load);
                 curValue = load;
                 if (eleType == IRIntType.I8())
-                    typeTrans(load, IRIntType.I32());
+                    curValue = typeTrans(load, IRIntType.I32());
             }
         } else {
+            // 普通数组变量，存的是数组首地址的指针
             IRGetElePtr gep = new IRGetElePtr(val, ind);
             gep.setName("%_var" + irFuncEnv.getCounter());
             curBlock.addInstruction(gep);
@@ -831,16 +885,16 @@ public class Visitor {
                 curBlock.addInstruction(load);
                 curValue = load;
                 if (load.getType() == IRIntType.I8())
-                    typeTrans(load, IRIntType.I32());
+                    curValue = typeTrans(load, IRIntType.I32());
             }
         }
     }
 
-    private void typeTrans(IRValue toTrans, IRType target) {
+    private IRValue typeTrans(IRValue toTrans, IRType target) {
         IRZext zext = new IRZext(toTrans, target);
         zext.setName("%_var" + irFuncEnv.getCounter());
         curBlock.addInstruction(zext);
-        curValue = zext;
+        return zext;
     }
 
 }

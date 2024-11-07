@@ -1,10 +1,12 @@
 package Middle.LLVMIR.Values.Instructions;
 
+import Middle.LLVMIR.IRTypes.IRIntType;
 import Middle.LLVMIR.IRTypes.IRType;
 import Middle.LLVMIR.IRTypes.IRVoidType;
 import Middle.LLVMIR.IRUse;
 import Middle.LLVMIR.IRValue;
 import Middle.LLVMIR.Values.IRFunction;
+import Middle.LLVMIR.Values.Instructions.Memory.IRGetElePtr;
 
 import java.util.ArrayList;
 
@@ -17,6 +19,8 @@ public class IRCall extends IRInstruction {
     private boolean isVoid = false;
     private String functionName;
     private ArrayList<IRValue> arguments;
+
+    private IRValue speArg = null;
 
     public IRCall(IRFunction function, ArrayList<IRValue> arguments) {
         // 函数名是第0个参数
@@ -36,12 +40,36 @@ public class IRCall extends IRInstruction {
         this.functionName = function.getName();
     }
 
+    /**
+     * getint(), getchar() -> i32
+     * */
+    public IRCall(String functionName) {
+        super(IRInstrType.Call, IRIntType.I32(), 0);
+        this.functionName = "@" + functionName;
+        isVoid = false;
+    }
+
+    /**
+     * putint(),putchar(),putstr() -> void
+     * */
+    public IRCall(String functionName, IRValue val) {
+        super(IRInstrType.Call, IRVoidType.Void(), 1);
+        this.functionName = "@" + functionName;
+        isVoid = true;
+        speArg = val;
+        IRUse use = new IRUse(this, val, 0);
+        this.addUse(use);
+        val.addUse(use);
+    }
+
     public String getIR() {
         StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append(getName()).append(" = call ");
+        if (!isVoid)
+            stringBuilder.append(getName()).append(" = ");
+        stringBuilder.append("call ");
         stringBuilder.append(getType()).append(" ");
         stringBuilder.append(functionName).append("(");
-        if (!arguments.isEmpty()) {
+        if (arguments != null && !arguments.isEmpty()) {
             IRValue first = arguments.get(0);
             stringBuilder.append(first.getType()).append(" ").append(first.getName());
             if (arguments.size() > 1) {
@@ -49,8 +77,17 @@ public class IRCall extends IRInstruction {
                     stringBuilder.append(", ").append(arguments.get(i).getType())
                             .append(" ").append(first.getName());
             }
-            stringBuilder.append(")\n");
-        }
+        } else if (speArg != null) {
+            // putstr
+            if (speArg instanceof IRGetElePtr)
+                stringBuilder.append(((IRGetElePtr) speArg).getIRVal());
+            else
+                // putint, putch
+                stringBuilder.append(speArg.getType()).append(" ").append(speArg.getName());
+        } else
+            System.out.println("FUCK ! CALL WTF ?");
+        // getint getchar
+        stringBuilder.append(")\n");
         return stringBuilder.toString();
     }
 }

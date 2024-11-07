@@ -1,9 +1,8 @@
 char s[10];
 int dd[10] = {4,5};
 
-int add(int x, int y, int tt[]) {
+void add(int x, int y, int tt[]) {
     x = x + x + x;
-    return x + y + tt[3];
 }
 
 int main() {
@@ -12,6 +11,6 @@ int main() {
     s[2] = 9;
     int c;
     c = dd[0];
-    c = add(b, dd[1], c_);
+    add(b, dd[1], c_);
     return c;
 }

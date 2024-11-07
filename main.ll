@@ -8,7 +8,7 @@ target triple = "x86_64-pc-linux-gnu"
 @s = dso_local global [10 x i8] zeroinitializer, align 1
 
 ; Function Attrs: noinline nounwind optnone uwtable
-define dso_local i32 @add(i32 %0, i32 %1, i32* %2) #0 {
+define dso_local void @add(i32 %0, i32 %1, i32* %2) #0 {
   %4 = alloca i32, align 4
   %5 = alloca i32, align 4
   %6 = alloca i32*, align 8
@@ -21,14 +21,7 @@ define dso_local i32 @add(i32 %0, i32 %1, i32* %2) #0 {
   %10 = load i32, i32* %4, align 4
   %11 = add nsw i32 %9, %10
   store i32 %11, i32* %4, align 4
-  %12 = load i32, i32* %4, align 4
-  %13 = load i32, i32* %5, align 4
-  %14 = add nsw i32 %12, %13
-  %15 = load i32*, i32** %6, align 8
-  %16 = getelementptr inbounds i32, i32* %15, i64 3
-  %17 = load i32, i32* %16, align 4
-  %18 = add nsw i32 %14, %17
-  ret i32 %18
+  ret void
 }
 
 ; Function Attrs: noinline nounwind optnone uwtable
@@ -46,10 +39,9 @@ define dso_local i32 @main() #0 {
   store i32 %6, i32* %4, align 4
   %7 = load i32, i32* getelementptr inbounds ([10 x i32], [10 x i32]* bitcast (<{ i32, i32, [8 x i32] }>* @dd to [10 x i32]*), i64 0, i64 1), align 4
   %8 = getelementptr inbounds [4 x i32], [4 x i32]* %3, i64 0, i64 0
-  %9 = call i32 @add(i32 2, i32 %7, i32* %8)
-  store i32 %9, i32* %4, align 4
-  %10 = load i32, i32* %4, align 4
-  ret i32 %10
+  call void @add(i32 2, i32 %7, i32* %8)
+  %9 = load i32, i32* %4, align 4
+  ret i32 %9
 }
 
 ; Function Attrs: argmemonly nofree nosync nounwind willreturn

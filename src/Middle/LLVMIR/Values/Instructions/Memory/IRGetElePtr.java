@@ -4,6 +4,7 @@ import Middle.LLVMIR.IRTypes.IRArrayType;
 import Middle.LLVMIR.IRTypes.IRIntType;
 import Middle.LLVMIR.IRTypes.IRPtrType;
 import Middle.LLVMIR.IRTypes.IRType;
+import Middle.LLVMIR.IRUse;
 import Middle.LLVMIR.IRValue;
 import Middle.LLVMIR.Values.IRConstant;
 import Middle.LLVMIR.Values.Instructions.IRInstrType;
@@ -23,9 +24,18 @@ public class IRGetElePtr extends IRInstruction {
     private ArrayList<IRValue> index;
 
     public IRGetElePtr(IRValue structVal, ArrayList<IRValue> index) {
+        /* 这里的返回值类型只考虑了拆包一层的 */
         super(IRInstrType.GEP, new IRPtrType(getEleTy(structVal)), index.size() + 1);
         this.structVal = structVal;
         this.index = index;
+        IRUse use = new IRUse(this, structVal, 0);
+        this.addUse(use);
+        structVal.addUse(use);
+        for (int i = 0; i < index.size(); i++) {
+            use = new IRUse(this, index.get(i), i + 1);
+            this.addUse(use);
+            index.get(i).addUse(use);
+        }
     }
 
     public static IRType getEleTy(IRValue structVal) {
@@ -50,12 +60,27 @@ public class IRGetElePtr extends IRInstruction {
         builder.append(structVal.getName());
         for (IRValue index : index) {
             builder.append(", ").append(index.getType()).append(" ");
-            if (index instanceof IRConstant)
-                builder.append(((IRConstant) index).getValue());
-            else
-                builder.append(index.getName());
+            builder.append(index.getName());
         }
         builder.append("\n");
+        return builder.toString();
+    }
+
+    /**
+     * 将 GEP 本身当成一个虚拟变量来使用
+     * 仅针对 str
+     * */
+    public String getIRVal() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("i8* getelementptr inbounds (");
+        builder.append(((IRPtrType)structVal.getType()).getPointed());
+        builder.append(", ").append(structVal.getType()).append(" ");
+        builder.append(structVal.getName());
+        for (IRValue index : index) {
+            builder.append(", ").append(index.getType()).append(" ");
+            builder.append(index.getName());
+        }
+        builder.append(")");
         return builder.toString();
     }
 }
