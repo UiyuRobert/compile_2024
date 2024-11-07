@@ -1,8 +1,10 @@
-package Middle.LLVMIR.Values.Instructions;
+package Middle.LLVMIR.Values.Instructions.TypeCasting;
 
 import Middle.LLVMIR.IRTypes.IRType;
 import Middle.LLVMIR.IRUse;
 import Middle.LLVMIR.IRValue;
+import Middle.LLVMIR.Values.Instructions.IRInstrType;
+import Middle.LLVMIR.Values.Instructions.IRInstruction;
 
 /**
  * zext..to : <result> = zext <ty> <value> to <ty2>

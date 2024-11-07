@@ -5,8 +5,9 @@ public enum IRInstrType {
     Add,// +
     Sub,// -
     Mul,// *
-    Div,// /
-    Mod,// %
+    Sdiv,// / 有符号除法
+    Srem,// % 有符号取余
+    Bitand, // bitand
     /* Logic Binary */
     Lt, // <
     Le, // <=
@@ -34,6 +35,7 @@ public enum IRInstrType {
     Store,
     GEP, // Get Element Ptr
     Zext,
+    Trunc,
     Phi,//用于 mem2reg
     /* label */
     Label,

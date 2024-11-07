@@ -10,7 +10,9 @@ import Middle.LLVMIR.IRModule;
 import Middle.LLVMIR.Values.Instructions.IRBinaryInstr;
 import Middle.LLVMIR.Values.Instructions.IRCall;
 import Middle.LLVMIR.Values.Instructions.IRInstrType;
-import Middle.LLVMIR.Values.Instructions.IRZext;
+import Middle.LLVMIR.Values.Instructions.IRInstruction;
+import Middle.LLVMIR.Values.Instructions.TypeCasting.IRTrunc;
+import Middle.LLVMIR.Values.Instructions.TypeCasting.IRZext;
 import Middle.LLVMIR.Values.Instructions.Memory.IRAlloca;
 import Middle.LLVMIR.Values.Instructions.Memory.IRGetElePtr;
 import Middle.LLVMIR.Values.Instructions.Memory.IRLoad;
@@ -283,7 +285,7 @@ public class Visitor {
         IRValue left = curValue;
         if (canBeUpdate((String) ident[0], (int) ident[1])) {
             IRCall call = new IRCall(funcStmt.getFuncName());
-            call.setName("%_var" + irFuncEnv.getCounter());
+            call.setName("%var" + irFuncEnv.getCounter());
             curBlock.addInstruction(call);
             IRValue toWrite = call;
             if (((IRPtrType)left.getType()).getPointed() == IRIntType.I8())
@@ -301,7 +303,7 @@ public class Visitor {
         IRValue right = curValue;
         if (canBeUpdate((String) ident[0], (int) ident[1])) {
             IRStore store = new IRStore(right, left);
-            store.setName("_var" + irFuncEnv.getCounter());
+            store.setName("var" + irFuncEnv.getCounter());
             curBlock.addInstruction(store);
         }
     }
@@ -366,29 +368,35 @@ public class Visitor {
             else symbol.setInitValue(ret);
         }
         if (curTable.getParent() == null) {
+            IRType irType = calType(bType, length);
             // 全局作用域，生成 IRGlobalVariable
-            IRGlobalVariable globalVariable = new IRGlobalVariable(calType(bType, length), name, true);
-            globalVariable.setInit((Integer[]) ret);
+            IRGlobalVariable globalVariable = new IRGlobalVariable(irType, name, true);
+            globalVariable.setInit(ret);
             globalVariable.setLength(length);
             irModule.addGlobalVariable(globalVariable);
-            if (symbol != null)
+            if (irType instanceof IRArrayType) {
+                IRValue first = new IRValue(new IRPtrType(((IRArrayType) irType).getElementType()),
+                        globalVariable.getName());
+                symbol.setIRValue(first);
+            } else
                 symbol.setIRValue(globalVariable);
         } else {
             IRType irType = calType(bType, length);
             if (irType instanceof IRArrayType) {
-                IRConstArray constArray = new IRConstArray(irType, "%_var" + irFuncEnv.getCounter());
+                IRConstArray constArray = new IRConstArray(irType, "%var" + irFuncEnv.getCounter());
                 constArray.setInit(ret);
-                if (symbol != null)
-                    symbol.setIRValue(constArray);
                 // 如果是数组，必须将数组存到内存里
                 IRAlloca alloca = new IRAlloca(irType, constArray.getName());
                 curBlock.addInstruction(alloca);
-                IRValue first = new IRValue(new IRPtrType(IRIntType.I32()), constArray.getName()); // 数组首元素的地址
+                IRValue first = new IRValue(new IRPtrType(((IRArrayType) irType).getElementType()),
+                        constArray.getName()); // 数组首元素的地址
+                if (symbol != null)
+                    symbol.setIRValue(first);
                 for (int i = 0; i < constArray.size(); ++i) {
                     ArrayList<IRValue> index = new ArrayList<>();
                     index.add(new IRConstant(IRIntType.I32(), i));
                     IRGetElePtr gep = new IRGetElePtr(first, index); // 生成写入的地址
-                    gep.setName("%_var" + irFuncEnv.getCounter());
+                    gep.setName("%var" + irFuncEnv.getCounter());
                     IRValue toWrite = constArray.getValByIndex(i); // 生成写入的数据
                     IRStore store = new IRStore(toWrite, gep); // store
                     curBlock.addInstruction(gep);
@@ -453,20 +461,50 @@ public class Visitor {
                 else symbol.setInitValue((Integer[]) ret);
             }
         }
+
+        IRType irType = calType(bType, length);
         if (curTable.getParent() == null) {
             // 全局作用域，生成 IRGlobalVariable
-            IRGlobalVariable globalVariable = new IRGlobalVariable(calType(bType, length), name, false);
+            IRGlobalVariable globalVariable = new IRGlobalVariable(irType, name, false);
             if (ret instanceof Integer[])
                 globalVariable.setInit((Integer[]) ret);
             else
                 System.out.println("FUCK ! THIS IS GLOBAL VARIABLE");
             globalVariable.setLength(length);
             irModule.addGlobalVariable(globalVariable);
-            if (symbol != null)
+            if (irType instanceof IRArrayType) {
+                IRValue first = new IRValue(new IRPtrType(((IRArrayType) irType).getElementType()),
+                        globalVariable.getName());
+                symbol.setIRValue(first);
+            } else
                 symbol.setIRValue(globalVariable);
         } else {
-            /* TODO */
-
+            if (irType instanceof IRArrayType) {
+                IRAlloca alloca = new IRAlloca(irType, "%var" + irFuncEnv.getCounter());
+                curBlock.addInstruction(alloca);
+                IRValue first = new IRValue(new IRPtrType(((IRArrayType) irType).getElementType()),
+                        alloca.getName());
+                symbol.setIRValue(first);
+                if (ret != null) { // 有初始值
+                    for (int i = 0; i < ret.length; ++i) {
+                        ArrayList<IRValue> indexes = new ArrayList<>();
+                        indexes.add(new IRConstant(IRIntType.I32(), i));
+                        IRGetElePtr gep = new IRGetElePtr(first, indexes);
+                        gep.setName("%var" + irFuncEnv.getCounter());
+                        curBlock.addInstruction(gep);
+                        IRStore store = new IRStore((IRValue) ret[i], gep);
+                        curBlock.addInstruction(store);
+                    }
+                }
+            } else {
+                IRAlloca alloca = new IRAlloca(irType, "%var" + irFuncEnv.getCounter());
+                curBlock.addInstruction(alloca);
+                symbol.setIRValue(alloca);
+                if (ret != null) {
+                    IRStore store = new IRStore((IRValue) ret[0], alloca);
+                    curBlock.addInstruction(store);
+                }
+            }
         }
     }
 
@@ -481,7 +519,7 @@ public class Visitor {
                 IRValue[] ret = new IRValue[1];
                 visitExp(initVal.getExpOnly());
                 ret[0] = curValue;
-                return null;
+                return ret;
             }
         }
         Integer[] ret = new Integer[length];
@@ -497,10 +535,13 @@ public class Visitor {
             while (index < length) ret[index++] = 0;
             return ret;
         }
+        IRValue[] rets = new IRValue[length];
+        int index = 0;
         for (ExpNode exp : initVal.getExpInits()) {
             visitExp(exp);
+            rets[index++] = curValue;
         }
-        return null;
+        return rets;
     }
 
     /*----------------------------------------------- Decl End ---------------------------------------------------*/
@@ -536,7 +577,7 @@ public class Visitor {
             for (Symbol param : params) {
                 // 普通类型传值，数组类型传指针
                 IRType irType = symbolTy2IRTy(param.getType()); // 参数的IR类型
-                IRValue p = new IRValue(irType, "%_param" + irFuncEnv.getCounter()); // 参数IR
+                IRValue p = new IRValue(irType, "%param" + irFuncEnv.getCounter()); // 参数IR
                 p.setParam(true);
                 funcType.addParam(p);
                 param.setIRValue(p);
@@ -584,7 +625,7 @@ public class Visitor {
             if (((FuncSymbol) funcSym).matchParams(refs, entry.getValue())) {
                 IRFunction func = (IRFunction) funcSym.getIRValue();
                 IRCall call = new IRCall(func, args);
-                call.setName("%_val" + irFuncEnv.getCounter());
+                call.setName("%val" + irFuncEnv.getCounter());
                 curBlock.addInstruction(call);
                 curValue = call;
             }
@@ -673,7 +714,7 @@ public class Visitor {
             else if (entry.getValue().equals("-"))
                 addInstr = new IRBinaryInstr(IRInstrType.Sub, IRIntType.I32(), left, right);
             else System.out.println("FUCK ! NOT ADD OR SUB");
-            String name = "%_var" + irFuncEnv.getCounter();
+            String name = "%var" + irFuncEnv.getCounter();
             addInstr.setName(name);
             curBlock.addInstruction(addInstr);
             left = addInstr;
@@ -693,11 +734,11 @@ public class Visitor {
             if (entry.getValue().equals("*"))
                 mulInstr = new IRBinaryInstr(IRInstrType.Mul, IRIntType.I32(), left, right);
             else if (entry.getValue().equals("/"))
-                mulInstr = new IRBinaryInstr(IRInstrType.Div, IRIntType.I32(), left, right);
+                mulInstr = new IRBinaryInstr(IRInstrType.Sdiv, IRIntType.I32(), left, right);
             else if (entry.getValue().equals("%"))
-                mulInstr = new IRBinaryInstr(IRInstrType.Mod, IRIntType.I32(), left, right);
+                mulInstr = new IRBinaryInstr(IRInstrType.Srem, IRIntType.I32(), left, right);
             else System.out.println("FUCK ! NOT * / %");
-            String name = "%_var" + irFuncEnv.getCounter();
+            String name = "%var" + irFuncEnv.getCounter();
             mulInstr.setName(name);
             curBlock.addInstruction(mulInstr);
             left = mulInstr;
@@ -716,7 +757,7 @@ public class Visitor {
             IRValue right = curValue;
             if (entry.getValue().equals("-")) {
                 IRBinaryInstr addInstr = new IRBinaryInstr(IRInstrType.Sub, IRIntType.I32(), left, right);
-                String name = "%_var" + irFuncEnv.getCounter();
+                String name = "%var" + irFuncEnv.getCounter();
                 addInstr.setName(name);
                 curBlock.addInstruction(addInstr);
                 curValue = addInstr;
@@ -781,12 +822,12 @@ public class Visitor {
         if (val.isParam()) { // 对于函数的参数
             IRType type = val.getType();
             if (!val.isAlloc()) {
-                IRAlloca alloca = new IRAlloca(type, "%_var" + irFuncEnv.getCounter());
+                IRAlloca alloca = new IRAlloca(type, "%var" + irFuncEnv.getCounter());
                 curBlock.addInstruction(alloca);
                 IRStore store = new IRStore(val, alloca);
                 curBlock.addInstruction(store);
                 IRLoad load = new IRLoad(type, alloca);
-                load.setName("%_var" + irFuncEnv.getCounter());
+                load.setName("%var" + irFuncEnv.getCounter());
                 curBlock.addInstruction(load);
                 load.setAlloc(true);
                 load.setParam(true);
@@ -804,7 +845,7 @@ public class Visitor {
                 } else {
                     type = ((IRPtrType)val.getType()).getPointed();
                     IRLoad load = new IRLoad(type, val);
-                    load.setName("%_var" + irFuncEnv.getCounter());
+                    load.setName("%var" + irFuncEnv.getCounter());
                     curBlock.addInstruction(load);
                     curValue = load;
                     if (type == IRIntType.I8())
@@ -820,7 +861,7 @@ public class Visitor {
                 // 是普通变量，需要 load
                 IRType type = ((IRPtrType)val.getType()).getPointed();
                 IRLoad load = new IRLoad(type, val);
-                load.setName("%_var" + irFuncEnv.getCounter());
+                load.setName("%var" + irFuncEnv.getCounter());
                 curBlock.addInstruction(load);
                 curValue = load;
                 if (type == IRIntType.I8()) {
@@ -841,13 +882,13 @@ public class Visitor {
             IRGetElePtr gep = null;
             IRLoad load = null;
             if (!val.isAlloc()) {
-                IRAlloca alloca = new IRAlloca(val.getType(), "%_var" + irFuncEnv.getCounter());
+                IRAlloca alloca = new IRAlloca(val.getType(), "%var" + irFuncEnv.getCounter());
                 curBlock.addInstruction(alloca);
                 IRStore store = new IRStore(val, alloca);
                 curBlock.addInstruction(store);
                 // 此时的 load 是指向数组首地址的指针 (i32* / i8*)
                 load = new IRLoad(val.getType(), alloca);
-                load.setName("%_var" + irFuncEnv.getCounter());
+                load.setName("%var" + irFuncEnv.getCounter());
                 curBlock.addInstruction(load);
                 load.setAlloc(true);
                 load.setParam(true);
@@ -858,7 +899,7 @@ public class Visitor {
                 gep = new IRGetElePtr(val, ind);
             }
 
-            gep.setName("%_var" + irFuncEnv.getCounter());
+            gep.setName("%var" + irFuncEnv.getCounter());
             curBlock.addInstruction(gep);
             if (isLeft) {
                 // 是左值，说明要赋值，curValue 应该是一个指针
@@ -866,7 +907,7 @@ public class Visitor {
             } else {
                 IRType eleType = ((IRPtrType)gep.getType()).getPointed();
                 load = new IRLoad(eleType, gep);
-                load.setName("%_var" + irFuncEnv.getCounter());
+                load.setName("%var" + irFuncEnv.getCounter());
                 curBlock.addInstruction(load);
                 curValue = load;
                 if (eleType == IRIntType.I8())
@@ -875,13 +916,13 @@ public class Visitor {
         } else {
             // 普通数组变量，存的是数组首地址的指针
             IRGetElePtr gep = new IRGetElePtr(val, ind);
-            gep.setName("%_var" + irFuncEnv.getCounter());
+            gep.setName("%var" + irFuncEnv.getCounter());
             curBlock.addInstruction(gep);
             if (isLeft) {
                 curValue = gep;
             } else {
                 IRLoad load = new IRLoad(((IRPtrType)gep.getType()).getPointed(), gep);
-                load.setName("%_var" + irFuncEnv.getCounter());
+                load.setName("%var" + irFuncEnv.getCounter());
                 curBlock.addInstruction(load);
                 curValue = load;
                 if (load.getType() == IRIntType.I8())
@@ -891,10 +932,19 @@ public class Visitor {
     }
 
     private IRValue typeTrans(IRValue toTrans, IRType target) {
-        IRZext zext = new IRZext(toTrans, target);
-        zext.setName("%_var" + irFuncEnv.getCounter());
-        curBlock.addInstruction(zext);
-        return zext;
+        IRInstruction instr = null;
+        if (target == IRIntType.I32())
+            instr = new IRZext(toTrans, target);
+        else if (target == IRIntType.I8())
+            instr = new IRTrunc(toTrans, target);
+
+        else {
+            System.out.println("WTF ? WHICH TYPE ?");
+            return null;
+        }
+        instr.setName("%var" + irFuncEnv.getCounter());
+        curBlock.addInstruction(instr);
+        return instr;
     }
 
 }

@@ -3,6 +3,7 @@ package Middle.LLVMIR;
 import Middle.LLVMIR.IRTypes.IRType;
 
 import java.io.*;
+import java.util.ArrayList;
 
 public class IRUser extends IRValue implements Serializable {
     private int operandCnt; // 操作数数量
@@ -12,8 +13,14 @@ public class IRUser extends IRValue implements Serializable {
         this.operandCnt = operandCnt;
     }
 
-    public IRValue getOperand(int i) {
-        /* TODO */
+    public IRValue getOperand(int index) {
+        ArrayList<IRUse> uses = this.getUseList();
+        for (IRUse use : uses) {
+            if (use.isPstOperand(this, index)) {
+                return use.getBUsed();
+            }
+        }
+        System.out.println("??? NOT FOUND OPERAND ???");
         return null;
     }
 

@@ -33,4 +33,56 @@ public class IRBinaryInstr extends IRInstruction {
         left.addUse(use1);
         right.addUse(use2);
     }
+
+    public String getIR() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(this.getName() + " = ");
+        switch (this.getInstrType()) {
+            case Add:
+                sb.append("add ");
+                break;
+            case Sub:
+                sb.append("sub ");
+                break;
+            case Mul:
+                sb.append("mul ");
+                break;
+            case Sdiv:
+                sb.append("sdiv ");
+                break;
+            case Srem:
+                sb.append("srem ");
+                break;
+            case Bitand:
+                sb.append("and ");
+            case Lt:
+                sb.append("Lt ");
+                break;
+            case Gt:
+                sb.append("Gt ");
+                break;
+            case Le:
+                sb.append("Le ");
+                break;
+            case Ge:
+                sb.append("Ge ");
+                break;
+            case Not:
+                sb.append("Not ");
+                break;
+            case Ne:
+                sb.append("Ne ");
+                break;
+            case Eq:
+                sb.append("Eq ");
+                break;
+            default:
+                System.out.println("WTF ! NO SUCH INSTR");
+                break;
+        }
+        sb.append("nsw ").append(this.getType()).append(" ");
+        sb.append(getOperand(0).getName()).append(", ");
+        sb.append(getOperand(1).getName()).append("\n");
+        return sb.toString();
+    }
 }

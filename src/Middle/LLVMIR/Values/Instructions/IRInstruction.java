@@ -17,4 +17,8 @@ public class IRInstruction extends IRUser {
     public String getIR() {
         return "";
     }
+
+    public IRInstrType getInstrType() {
+        return instrType;
+    }
 }

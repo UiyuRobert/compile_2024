@@ -41,6 +41,8 @@ public class IRValue implements Serializable {
 
     public boolean isAlloc() { return isAlloc; }
 
+    public ArrayList<IRUse> getUseList() { return useList; }
+
     public IRValue deepClone() {
         IRValue cloneVal = null;
         try {

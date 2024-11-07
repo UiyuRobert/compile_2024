@@ -3,7 +3,7 @@ package Middle.LLVMIR;
 import java.io.*;
 
 public class IRUse implements Serializable {
-    private int operandPst; // 操作数位置，靠前的为 1
+    private int operandPst; // 操作数位置，靠前的为 0
     private IRUser user;
     private IRValue value;
 
@@ -11,6 +11,14 @@ public class IRUse implements Serializable {
         this.user = user;
         this.value = value;
         this.operandPst = operandPst;
+    }
+
+    public boolean isPstOperand(IRUser user, int operandPst) {
+        return this.user == user && this.operandPst == operandPst;
+    }
+
+    public IRValue getBUsed() {
+        return value;
     }
 
     public IRUse deepClone() {

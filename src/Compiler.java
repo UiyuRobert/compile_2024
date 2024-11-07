@@ -33,12 +33,13 @@ public class Compiler {
         /*-- 启动 Parser --*/
         Parser parser = new Parser(tokenList);
         CompUnitNode compUnit = parser.parse();
-        result = parser.getParseResult();
+        // result = parser.getParseResult();
         // System.out.println(parser.getParseResult());
-        /*-- 语义分析 --*/
+        /*-- 语义分析，中间代码生成 --*/
         Visitor visitor = new Visitor();
         IRModule module = visitor.visit(compUnit);
-        result = sortAndGen(record);
+        // result = sortAndGen(record); // 符号表
+        result = module.getIR();
         /*--判断是否有错误--*/
         if (ErrorHandling.isErrorOccurred()) {
             errorOutput();
@@ -71,7 +72,7 @@ public class Compiler {
     }
 
     private static void normalOutput(String output) {
-        String outputRightFileName = "parser.txt";
+        String outputRightFileName = "llvmir.txt";
         try {
             BufferedWriter writer = new BufferedWriter(new FileWriter(outputRightFileName));
             writer.write(output);
