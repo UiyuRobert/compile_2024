@@ -1,14 +1,9 @@
-int a[3 + 3] = {1, 2, 3, 4, 5, 6};
-int foo(int x, int y[]) {
-    return x + y[2];
-}
-
-int fee(int x, int y[]) {
-    return foo(x, y);
-}
-
+int a[4] = {4,5};
 int main() {
-    int x = fee(a[4], a);
-
+    if (a[0] > 3 || a[2] != 0)
+        a[0] = 0;
+    else
+        a[0] = 1;
+    a[1] = 9;
     return 0;
 }

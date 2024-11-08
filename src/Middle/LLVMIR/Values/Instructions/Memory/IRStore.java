@@ -17,6 +17,10 @@ public class IRStore extends IRInstruction {
     private IRValue val2Write;
     private IRValue valOfPtr;
 
+    /**
+     * val2Write 要写入的数据的值<br>
+     * valOfPtr 指向要写入数据的内存块的指针
+     * */
     public IRStore(IRValue val2Write, IRValue valOfPtr) {
         super(IRInstrType.Store, IRVoidType.Void(), 2);
         this.val2Write = val2Write;

@@ -99,6 +99,34 @@ public class Visitor {
                 type.equals("char") ? IRIntType.I8() : IRIntType.I32();
     }
 
+    private IRValue typeTrans(IRValue toTrans, IRType target) {
+        IRInstruction instr = null;
+        if (target == IRIntType.I32())
+            instr = new IRZext(toTrans, target);
+        else if (target == IRIntType.I8())
+            instr = new IRTrunc(toTrans, target);
+
+        else {
+            System.out.println("WTF ? WHICH TYPE ?");
+            return null;
+        }
+        instr.setName("%var" + irFuncEnv.getCounter());
+        curBlock.addInstruction(instr);
+        return instr;
+    }
+
+    private IRValue typeCheck(IRValue toWrite, IRValue ptr) {
+        IRType targetType = ((IRPtrType)ptr.getType()).getPointed();
+        if (targetType == IRIntType.I8() && toWrite.getType() != targetType){
+            if (toWrite instanceof IRConstant) {
+                ((IRConstant) toWrite).typeCast(IRIntType.I8());
+                return toWrite;
+            }
+            return typeTrans(toWrite, IRIntType.I8());
+        }
+        return toWrite;
+    }
+
     /*----------------------------------------------- CompUnit Start ---------------------------------------------------*/
 
     public IRModule visit(CompUnitNode compUnit) {
@@ -244,9 +272,11 @@ public class Visitor {
             if (segments[i].equals("%c") || segments[i].equals("%d")) {
                 visitExp(exps.get(j++));
                 IRValue toPrint = curValue;
+                if (toPrint.getType() == IRIntType.I8())
+                    toPrint = typeTrans(toPrint, IRIntType.I32());
                 IRCall call = null;
                 if (segments[i].equals("%c")) {
-                    call = new IRCall("putch", toPrint);
+                    call = new IRCall("putchar", toPrint);
                 } else
                     call = new IRCall("putint", toPrint);
 
@@ -300,6 +330,7 @@ public class Visitor {
         visitExp(assignStmt.getAssignExp());
         IRValue right = curValue;
         if (canBeUpdate((String) ident[0], (int) ident[1])) {
+            right = typeCheck(right, left);
             IRStore store = new IRStore(right, left);
             store.setName("var" + irFuncEnv.getCounter());
             curBlock.addInstruction(store);
@@ -314,13 +345,18 @@ public class Visitor {
             if (funcEnv == Symbol.Type.VoidFunc)
                 ErrorHandling.processSemanticError("f", returnStmt.getRetLineNum());
             IRValue retVal = curValue;
+            IRType type = irFuncEnv.getReturnType();
+            if (type == IRIntType.I8())
+                retVal = typeTrans(retVal, IRIntType.I8());
             IRReturn ret = new IRReturn(retVal);
             curBlock.addInstruction(ret);
-            irFuncEnv.addBlock(curBlock);
+            if (isFinalStmt) /*TODO*/ // wrong
+                irFuncEnv.addBlock(curBlock);
         } else {
             IRReturn ret = new IRReturn();
             curBlock.addInstruction(ret);
-            irFuncEnv.addBlock(curBlock);
+            if (isFinalStmt) /*TODO*/ // wrong
+                irFuncEnv.addBlock(curBlock);
         }
     }
 
@@ -394,12 +430,15 @@ public class Visitor {
 
                 for (int i = 0; i < constArray.size(); ++i) {
                     ArrayList<IRValue> index = new ArrayList<>();
+                    index.add(new IRConstant(IRIntType.I32(), 0));
                     index.add(new IRConstant(IRIntType.I32(), i));
-                    IRGetElePtr gep = new IRGetElePtr(first, index); // 生成写入的地址
+                    IRGetElePtr gep = new IRGetElePtr(alloca, index); // 生成写入的地址
                     gep.setName("%var" + irFuncEnv.getCounter());
-                    IRValue toWrite = constArray.getValByIndex(i); // 生成写入的数据
-                    IRStore store = new IRStore(toWrite, gep); // store
                     curBlock.addInstruction(gep);
+
+                    IRValue toWrite = constArray.getValByIndex(i); // 生成写入的数据
+                    toWrite = typeCheck(toWrite, gep);
+                    IRStore store = new IRStore(toWrite, gep); // store
                     curBlock.addInstruction(store);
                 }
             } else {
@@ -468,8 +507,7 @@ public class Visitor {
             IRGlobalVariable globalVariable = new IRGlobalVariable(irType, name, false);
             if (ret instanceof Integer[])
                 globalVariable.setInit((Integer[]) ret);
-            else
-                System.out.println("FUCK ! THIS IS GLOBAL VARIABLE");
+
             globalVariable.setLength(length);
             irModule.addGlobalVariable(globalVariable);
             if (irType instanceof IRArrayType) {
@@ -489,11 +527,13 @@ public class Visitor {
                 if (ret != null) { // 有初始值
                     for (int i = 0; i < ret.length; ++i) {
                         ArrayList<IRValue> indexes = new ArrayList<>();
+                        indexes.add(new IRConstant(IRIntType.I32(), 0));
                         indexes.add(new IRConstant(IRIntType.I32(), i));
-                        IRGetElePtr gep = new IRGetElePtr(first, indexes);
+                        IRGetElePtr gep = new IRGetElePtr(alloca, indexes);
                         gep.setName("%var" + irFuncEnv.getCounter());
                         curBlock.addInstruction(gep);
-                        IRStore store = new IRStore((IRValue) ret[i], gep);
+                        IRValue toWrite = typeCheck((IRValue) ret[i], gep);
+                        IRStore store = new IRStore(toWrite, gep);
                         curBlock.addInstruction(store);
                     }
                 }
@@ -502,7 +542,8 @@ public class Visitor {
                 curBlock.addInstruction(alloca);
                 symbol.setIRValue(alloca);
                 if (ret != null) {
-                    IRStore store = new IRStore((IRValue) ret[0], alloca);
+                    IRValue toWrite = typeCheck((IRValue) ret[0], alloca);
+                    IRStore store = new IRStore(toWrite, alloca);
                     curBlock.addInstruction(store);
                 }
             }
@@ -523,26 +564,34 @@ public class Visitor {
                 return ret;
             }
         }
-        Integer[] ret = new Integer[length];
-        if (initVal.isStrInit()) {
-            String str = initVal.getStrInit();
-            for (int i = 0; i < str.length(); i++) ret[i] = (int) str.charAt(i);
-            for (int i = str.length(); i < length; i++) ret[i] = 0;
-            return ret;
-        }
+
         if (curTable.getParent() == null) {
+            Integer[] ret = new Integer[length];
+            if (initVal.isStrInit()) {
+                String str = initVal.getStrInit();
+                for (int i = 0; i < str.length(); i++) ret[i] = (int) str.charAt(i);
+                for (int i = str.length(); i < length; i++) ret[i] = 0;
+                return ret;
+            }
             int index = 0;
             for (ExpNode exp : initVal.getExpInits()) ret[index++] = exp.getValue();
             while (index < length) ret[index++] = 0;
             return ret;
+        } else {
+            IRValue[] rets = new IRValue[length];
+            if (initVal.isStrInit()) {
+                String str = initVal.getStrInit();
+                for (int i = 0; i < str.length(); i++) rets[i] = new IRConstant(IRIntType.I32(), str.charAt(i));
+                for (int i = str.length(); i < length; i++) rets[i] = new IRConstant(IRIntType.I32(), 0);
+                return rets;
+            }
+            int index = 0;
+            for (ExpNode exp : initVal.getExpInits()) {
+                visitExp(exp);
+                rets[index++] = curValue;
+            }
+            return rets;
         }
-        IRValue[] rets = new IRValue[length];
-        int index = 0;
-        for (ExpNode exp : initVal.getExpInits()) {
-            visitExp(exp);
-            rets[index++] = curValue;
-        }
-        return rets;
     }
 
     /*----------------------------------------------- Decl End ---------------------------------------------------*/
@@ -625,16 +674,28 @@ public class Visitor {
             List<Symbol.Type> refs = (List<Symbol.Type>) ret[0];
             ArrayList<IRValue> args = (ArrayList<IRValue>) ret[1];
             if (((FuncSymbol) funcSym).matchParams(refs, entry.getValue())) {
-                IRFunction func = (IRFunction) funcSym.getIRValue();
-                IRCall call = new IRCall(func, args);
-                if (func.getReturnType() != IRVoidType.Void())
-                    call.setName("%val" + irFuncEnv.getCounter());
+                IRCall call = getIrCall(funcSym, args);
                 curBlock.addInstruction(call);
                 curValue = call;
             }
             return funcSym.getType() == Symbol.Type.VoidFunc ? Symbol.Type.NONE : Symbol.Type.NotArray;
         }
         return Symbol.Type.NONE;
+    }
+
+    private IRCall getIrCall(Symbol funcSym, ArrayList<IRValue> args) {
+        IRFunction func = (IRFunction) funcSym.getIRValue();
+        IRFuncType irFuncType = (IRFuncType) func.getType();
+        ArrayList<IRValue> formalArgs = irFuncType.getParameters();
+        /* 参数类型检查 */
+        for (int i = 0; i < formalArgs.size(); i++) {
+            if (formalArgs.get(i).getType() == IRIntType.I8() && args.get(i).getType() != IRIntType.I8())
+                args.set(i, typeTrans(args.get(i), IRIntType.I8()));
+        }
+        IRCall call = new IRCall(func, args);
+        if (func.getReturnType() != IRVoidType.Void())
+            call.setName("%val" + irFuncEnv.getCounter());
+        return call;
     }
 
     /**
@@ -862,10 +923,10 @@ public class Visitor {
             // 常量
             boolean isArray = symbol.isArray();
             if (isArray) {
-                IRValue first = symbol.getFirst(); // 数组首地址
                 ArrayList<IRValue> ind = new ArrayList<>();
                 ind.add(new IRConstant(IRIntType.I32(), 0));
-                IRGetElePtr gep = new IRGetElePtr(first, ind);
+                ind.add(new IRConstant(IRIntType.I32(), 0));
+                IRGetElePtr gep = new IRGetElePtr(val, ind);
                 gep.setName("%var" + irFuncEnv.getCounter());
                 curBlock.addInstruction(gep);
                 curValue = gep;
@@ -931,10 +992,12 @@ public class Visitor {
                     curValue = typeTrans(load, IRIntType.I32());
             }
         } else {
-            IRValue first = symbol.getFirst();
             // 普通数组变量，first 存的是数组首地址的指针
             // val 是指向数组的指针
-            IRGetElePtr gep = new IRGetElePtr(first, ind);
+            ArrayList<IRValue> indexes = new ArrayList<>();
+            indexes.add(new IRConstant(IRIntType.I32(), 0));
+            indexes.add(ind.get(0));
+            IRGetElePtr gep = new IRGetElePtr(val, indexes);
             gep.setName("%var" + irFuncEnv.getCounter());
             curBlock.addInstruction(gep);
             if (isLeft) {
@@ -948,22 +1011,6 @@ public class Visitor {
                     curValue = typeTrans(load, IRIntType.I32());
             }
         }
-    }
-
-    private IRValue typeTrans(IRValue toTrans, IRType target) {
-        IRInstruction instr = null;
-        if (target == IRIntType.I32())
-            instr = new IRZext(toTrans, target);
-        else if (target == IRIntType.I8())
-            instr = new IRTrunc(toTrans, target);
-
-        else {
-            System.out.println("WTF ? WHICH TYPE ?");
-            return null;
-        }
-        instr.setName("%var" + irFuncEnv.getCounter());
-        curBlock.addInstruction(instr);
-        return instr;
     }
 
 }

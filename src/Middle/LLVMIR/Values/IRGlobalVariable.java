@@ -4,10 +4,10 @@ import Middle.LLVMIR.IRTypes.IRArrayType;
 import Middle.LLVMIR.IRTypes.IRIntType;
 import Middle.LLVMIR.IRTypes.IRPtrType;
 import Middle.LLVMIR.IRTypes.IRType;
-import Middle.LLVMIR.IRUse;
 import Middle.LLVMIR.IRValue;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
  * LLVM IR 全局变量
@@ -17,6 +17,19 @@ public class IRGlobalVariable extends IRValue {
     private ArrayList<Integer> inits;
     private int length;
     private IRType elementTy;
+
+    private static HashMap<Integer, String> ascii = new HashMap<>(){{
+        put(7, "\\07");
+        put(8, "\\08");
+        put(9, "\\09");
+        put(10, "\\0A");
+        put(11, "\\0B");
+        put(12, "\\0C");
+        put(34, "\\22");
+        put(39, "\\27");
+        put(92, "\\5C");
+        put(0, "\\00");
+    }};
 
     private static int privateCount = 0;
     private boolean isPrivate;
@@ -76,9 +89,9 @@ public class IRGlobalVariable extends IRValue {
                 else {
                     sb.append("c\"");
                     for (Integer init : inits) {
-                        if (init != 0)
-                            sb.append((char) init.intValue());
-                        else sb.append("\\00");
+                        if (ascii.containsKey(init))
+                            sb.append(ascii.get(init));
+                        else sb.append((char) init.intValue());
                     }
                     sb.append("\"");
                 }

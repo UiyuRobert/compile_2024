@@ -39,13 +39,13 @@ public class IRBinaryInstr extends IRInstruction {
         sb.append(this.getName() + " = ");
         switch (this.getInstrType()) {
             case Add:
-                sb.append("add ");
+                sb.append("add nsw ");
                 break;
             case Sub:
-                sb.append("sub ");
+                sb.append("sub nsw ");
                 break;
             case Mul:
-                sb.append("mul ");
+                sb.append("mul nsw ");
                 break;
             case Sdiv:
                 sb.append("sdiv ");
@@ -80,7 +80,7 @@ public class IRBinaryInstr extends IRInstruction {
                 System.out.println("WTF ! NO SUCH INSTR");
                 break;
         }
-        sb.append("nsw ").append(this.getType()).append(" ");
+        sb.append(this.getType()).append(" ");
         sb.append(getOperand(0).getName()).append(", ");
         sb.append(getOperand(1).getName()).append("\n");
         return sb.toString();
