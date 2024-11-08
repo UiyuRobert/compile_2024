@@ -24,6 +24,8 @@ public class IRUser extends IRValue implements Serializable {
         return null;
     }
 
+    public int getOperandCount() { return operandCnt; }
+
     public IRUser deepClone() {
         IRUser cloneUser = null;
         try {

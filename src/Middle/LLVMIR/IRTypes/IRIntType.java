@@ -27,6 +27,6 @@ public class IRIntType implements IRType {
         if(bits == 32) return "i32";
         else if(bits == 8) return "i8";
         else if(bits == 64) return "i64";
-        else return "bool";
+        else return "i1";
     }
 }

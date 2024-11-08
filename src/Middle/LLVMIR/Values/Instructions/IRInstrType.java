@@ -7,28 +7,24 @@ public enum IRInstrType {
     Mul,// *
     Sdiv,// / 有符号除法
     Srem,// % 有符号取余
-    Bitand, // bitand
     /* Logic Binary */
-    Lt, // <
-    Le, // <=
-    Ge, // >=
-    Gt, // >
+    //  icmp
+    Slt, // <
+    Sle, // <=
+    Sge, // >=
+    Sgt, // >
     Eq, // ==
     Ne, // !=
-    And,// &
-    Or, // |
+
+    And,// &&
+    Or, // ||
     Not, // ! ONLY ONE PARAM
-    Beq, // IrBeq branch if ==
-    Bne, // IrBne branch if !=
-    Blt, // IrBlt branch if less than <
-    Ble, // IrBle branch if less or equal <=
-    Bgt, // IrBgt branch if greater than >
-    Bge, // IrBge branch if greater or equal >=
     Goto, // IrGoto
     /* Terminator */
     Br,
-    Call,
     Ret,
+    /* function call */
+    Call,
     /* mem op */
     Alloca,
     Load,

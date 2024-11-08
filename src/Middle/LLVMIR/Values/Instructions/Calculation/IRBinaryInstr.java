@@ -1,8 +1,10 @@
-package Middle.LLVMIR.Values.Instructions;
+package Middle.LLVMIR.Values.Instructions.Calculation;
 
 import Middle.LLVMIR.IRTypes.IRType;
 import Middle.LLVMIR.IRUse;
 import Middle.LLVMIR.IRValue;
+import Middle.LLVMIR.Values.Instructions.IRInstrType;
+import Middle.LLVMIR.Values.Instructions.IRInstruction;
 
 /**
  * Binary Calculation
@@ -11,15 +13,8 @@ import Middle.LLVMIR.IRValue;
  * - Add +
  * - Sub -
  * - Mul *
- * - Div /
- * - Lt < Less Than
- * - Le <= Less or Equal
- * - Ge >= Greater or Equal
- * - Gt > Greater
- * - Eq == Equal
- * - Ne != Not Equal
- * - And &
- * - Or |
+ * - Sdiv /
+ * - Srem %
  * ty : Type Value类型
  * op1, op2 : 操作数
  */
@@ -52,29 +47,6 @@ public class IRBinaryInstr extends IRInstruction {
                 break;
             case Srem:
                 sb.append("srem ");
-                break;
-            case Bitand:
-                sb.append("and ");
-            case Lt:
-                sb.append("Lt ");
-                break;
-            case Gt:
-                sb.append("Gt ");
-                break;
-            case Le:
-                sb.append("Le ");
-                break;
-            case Ge:
-                sb.append("Ge ");
-                break;
-            case Not:
-                sb.append("Not ");
-                break;
-            case Ne:
-                sb.append("Ne ");
-                break;
-            case Eq:
-                sb.append("Eq ");
                 break;
             default:
                 System.out.println("WTF ! NO SUCH INSTR");
