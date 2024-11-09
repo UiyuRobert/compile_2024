@@ -47,8 +47,8 @@ public class IRIcmp extends IRInstruction {
     public String getIR() {
         StringBuilder sb = new StringBuilder();
         sb.append(this.getName()).append(" = icmp ");
-        sb.append(getCondType()).append(" i32");
-        sb.append(operand1.getName()).append(" ").append(operand2.getName()).append("\n");
+        sb.append(getCondType()).append(" i32 ");
+        sb.append(operand1.getName()).append(", ").append(operand2.getName()).append("\n");
         return sb.toString();
     }
 

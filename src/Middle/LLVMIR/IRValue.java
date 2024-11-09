@@ -1,6 +1,7 @@
 package Middle.LLVMIR;
 
 import Middle.LLVMIR.IRTypes.IRType;
+import Middle.LLVMIR.Values.IRBasicBlock;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -11,7 +12,6 @@ public class IRValue implements Serializable {
     private ArrayList<IRUse> useList;
 
     private boolean isParam = false; // 是否是函数的参数
-    private boolean isAlloc = false;
 
     public IRValue(IRType type, String name) {
         this.type = type;
@@ -38,15 +38,9 @@ public class IRValue implements Serializable {
 
     public void setParam(boolean isParam) { this.isParam = isParam; }
 
-    public void setAlloc(boolean isAlloc) { this.isAlloc = isAlloc; }
-
     public void setType(IRType type) { this.type = type; }
 
-
     public boolean isParam() { return isParam; }
-
-    public boolean isAlloc() { return isAlloc; }
-
 
     public IRValue deepClone() {
         IRValue cloneVal = null;

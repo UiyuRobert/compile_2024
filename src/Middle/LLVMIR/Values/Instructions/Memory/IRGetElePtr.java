@@ -47,8 +47,19 @@ public class IRGetElePtr extends IRInstruction {
         else if (eleType instanceof IRArrayType)
             return ((IRArrayType) eleType).getElementType();
         else {
-            System.out.println("FUCK ! GEP SHOULD NOT REACH HERE !");
-            return null;
+            IRType t = ((IRPtrType)eleType).getPointed();
+            if (t == IRIntType.I32())
+                return IRIntType.I32();
+            else if (t == IRIntType.I8())
+                return IRIntType.I8();
+            else if (t instanceof IRArrayType)
+                return ((IRArrayType) t).getElementType();
+            else {
+                System.out.println("FUCK ! GEP SHOULD NOT REACH HERE !");
+                System.out.println(t);
+                return null;
+            }
+
         }
     }
 
