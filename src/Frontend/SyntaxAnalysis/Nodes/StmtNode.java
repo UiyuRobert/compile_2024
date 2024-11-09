@@ -307,6 +307,8 @@ public class StmtNode implements Node {
 
     public int getBOCLineNum() { return breakOrContinueTerminal.getLineNumber(); }
 
+    public String getBOCStr() { return breakOrContinueTerminal.getValue(); }
+
     public StmtNode(Token returnTerminal, Node expNode, Token semicolonTerminal) {
         /*-- 'return' [Exp] ';' --*/
         this.returnTerminal = returnTerminal;

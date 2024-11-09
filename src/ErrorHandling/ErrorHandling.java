@@ -66,7 +66,15 @@ public class ErrorHandling {
     }
 
     public static void processSemanticError(String errCode, int errorLineNumber) {
-        addError(errCode, errorLineNumber);
+        boolean alreadyHas = false;
+        for (MError error : errors) {
+            if (error.getErrorCode().equals(errCode) && error.getErrorLineNumber() == errorLineNumber) {
+                alreadyHas = true;
+                break;
+            }
+        }
+        if (!alreadyHas)
+            addError(errCode, errorLineNumber);
     }
 
     public static boolean isErrorOccurred() {

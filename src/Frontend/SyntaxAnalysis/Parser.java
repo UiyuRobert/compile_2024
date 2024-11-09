@@ -383,7 +383,13 @@ public class Parser {
                 /*-- 'return' [Exp] ';' --*/
                 Token returnTerminal = match(new KindCode[]{KindCode.RETURNTK});
                 Node expNode = null;
-                if (currentToken.getKindCode() != KindCode.SEMICN) expNode = parseExp();
+                if ((currentToken.getKindCode() == KindCode.IDENFR
+                        || currentToken.getKindCode() == KindCode.INTCON
+                        || currentToken.getKindCode() == KindCode.CHRCON
+                        || currentToken.getKindCode() == KindCode.LPARENT
+                        || currentToken.getKindCode() == KindCode.PLUS
+                        || currentToken.getKindCode() == KindCode.MINU) && !isLVal())
+                    expNode = parseExp();
                 Token semicolonTerminal = match(new KindCode[]{KindCode.SEMICN});
                 return new StmtNode(returnTerminal, expNode, semicolonTerminal);
             }

@@ -22,15 +22,14 @@ import Middle.LLVMIR.Values.Instructions.Memory.IRLoad;
 import Middle.LLVMIR.Values.Instructions.Memory.IRStore;
 import Middle.LLVMIR.Values.Instructions.Terminal.IRReturn;
 import Middle.Symbols.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Visitor {
     public static SymbolTable curTable;
-    private IRModule irModule; // 顶层模块
+    private final IRModule irModule; // 顶层模块
     private int domainNumber;
     private int inFor;
 
@@ -41,6 +40,7 @@ public class Visitor {
     private IRFunction irFuncEnv = null; // 所在的函数环境
     private IRBasicBlock curBlock = null; // 当前处理到的基本块
     private IRValue curValue = null; // 计算表达式
+    private Stack<Map.Entry<IRLabel, IRLabel>> forStack; // break - continue 要去的标签
 
     public Visitor() {
         this.domainNumber = 0;
@@ -49,6 +49,7 @@ public class Visitor {
         isFinalStmt = false;
         hasReturn = false;
         irModule = new IRModule();
+        forStack = new Stack<>();
     }
 
     private boolean isRename(String name, int lineNumber) {
@@ -229,7 +230,8 @@ public class Visitor {
 
     private void visitBlockItem(BlockItemNode blockItem) {
         /*-- BlockItem → Decl | Stmt --*/
-        if (blockItem.isStmt()) visitStmt(blockItem.getStmt());
+        if (blockItem.isStmt())
+            visitStmt(blockItem.getStmt());
         else visitDecl(blockItem.getDecl());
     }
 
@@ -251,7 +253,15 @@ public class Visitor {
             } break;
             case BOCSTMT: visitBOCStmt(stmt); break;
             case EXPSTMT: visitExpStmt(stmt); break;
-            case FORSTMT: visitForStmt(stmt); break;
+            case FORSTMT: {
+                IRLabel afterFor = new IRLabel();
+                IRBasicBlock block = new IRBasicBlock("");
+                block.addInstruction(afterFor);
+
+                visitForStmt(stmt, afterFor);
+                forStack.pop();
+                curBlock = block;
+            } break;
             case FUNCSTMT: visitFuncStmt(stmt); break;
             case ASSIGNSTMT: visitAssignStmt(stmt); break;
             case PRINTFSTMT: visitPrintStmt(stmt); break;
@@ -302,24 +312,63 @@ public class Visitor {
 
     }
 
-    private void visitForStmt(StmtNode forStmt) {
+    private void visitForStmt(StmtNode forStmt, IRLabel afterFor) {
         /*-- 'for' '(' [ForStmt] ';' [Cond] ';' [ForStmt] ')' Stmt --*/
-        /*TODO*/
         isFinalStmt = false;
         ++inFor;
+
+        IRLabel loopStart = new IRLabel();
+
         if (forStmt.hasInFor1()) visitInForStmt(forStmt.getInFor1());
-        if (forStmt.hasCondInFor()) ;// visitCond(forStmt.getCondInFor());
-        if (forStmt.hasInFor2()) visitInForStmt(forStmt.getInFor2());
+        IRBr br = new IRBr(loopStart);
+        curBlock.addInstruction(br); // 解决入口问题
+        irFuncEnv.addBlock(curBlock);
+
+        IRBasicBlock loopCond = new IRBasicBlock("loop-cond");
+        loopCond.addInstruction(loopStart);
+        curBlock = loopCond;
+
+        IRLabel toBr = new IRLabel(); // 提前生成标签，方便 continue
+        forStack.push(new AbstractMap.SimpleEntry<>(afterFor, toBr));
+
+        if (forStmt.hasCondInFor()) {
+            IRBasicBlock loopBody = new IRBasicBlock("loop-body");
+            IRLabel body = new IRLabel();
+            loopBody.addInstruction(body);
+
+            visitCond(forStmt.getCondInFor(), body, afterFor);
+            irFuncEnv.addBlock(curBlock);
+            curBlock = loopBody;
+        }
+
         visitStmt(forStmt.get4Stmt());
+        br = new IRBr(toBr);
+        curBlock.addInstruction(br);
+        irFuncEnv.addBlock(curBlock);
+
+        curBlock = new IRBasicBlock("loop-end");
+        curBlock.addInstruction(toBr);
+
+        if (forStmt.hasInFor2()) visitInForStmt(forStmt.getInFor2());
+
+        br = new IRBr(loopStart);
+        curBlock.addInstruction(br);
+        irFuncEnv.addBlock(curBlock);
+
         --inFor;
     }
 
     private void visitInForStmt(ForStmtNode forStmt) {
         /*-- ForStmt → LVal '=' Exp --*/
         Object[] ident = visitLVal(forStmt.getLVal(), true);
+        IRValue left = curValue;
         visitExp(forStmt.getExp());
+        IRValue right = curValue;
         if (canBeUpdate((String) ident[0], (int) ident[1])) {
-            /* TODO */
+            right = typeCheck(right, left);
+            IRStore store = new IRStore(right, left);
+            store.setName("var" + irFuncEnv.getCounter());
+            curBlock.addInstruction(store);
         }
     }
 
@@ -369,7 +418,14 @@ public class Visitor {
 
     private void visitBOCStmt(StmtNode bocStmt) {
         /*-- 'break' ';' | 'continue' ';' --*/ // 只能出现在 for 语句块中
-        if (inFor == 0) ErrorHandling.processSemanticError("m", bocStmt.getBOCLineNum());
+        if (inFor == 0 || forStack.isEmpty()) ErrorHandling.processSemanticError("m", bocStmt.getBOCLineNum());
+        String op = bocStmt.getBOCStr();
+        Map.Entry<IRLabel, IRLabel> entry = forStack.peek();
+        IRBr br = null;
+        if (op.equals("break")) br = new IRBr(entry.getKey());
+        else if (op.equals("continue")) br = new IRBr(entry.getValue());
+        else System.out.println("DAMN !!! NO BREAK OR CONTINUE");
+        curBlock.addInstruction(br);
     }
 
     private void visitExpStmt(StmtNode expStmt) {
@@ -379,9 +435,10 @@ public class Visitor {
 
     private void visitFuncStmt(StmtNode funcStmt) {
         /*-- LVal '=' 'getint''('')'';' |  LVal '=' 'getchar''('')''; --*/
+        curValue = null;
         Object[] ident = visitLVal(funcStmt.getLVal(), true);
         IRValue left = curValue;
-        if (canBeUpdate((String) ident[0], (int) ident[1])) {
+        if (canBeUpdate((String) ident[0], (int) ident[1]) && left != null) {
             IRCall call = new IRCall(funcStmt.getFuncName());
             call.setName("%var" + irFuncEnv.getCounter());
             curBlock.addInstruction(call);
@@ -395,11 +452,12 @@ public class Visitor {
 
     private void visitAssignStmt(StmtNode assignStmt) {
         /*-- LVal '=' Exp ';' --*/
+        curValue = null;
         Object[] ident = visitLVal(assignStmt.getLVal(), true);
         IRValue left = curValue;
         visitExp(assignStmt.getAssignExp());
         IRValue right = curValue;
-        if (canBeUpdate((String) ident[0], (int) ident[1])) {
+        if (canBeUpdate((String) ident[0], (int) ident[1]) && left != null) {
             right = typeCheck(right, left);
             IRStore store = new IRStore(right, left);
             store.setName("var" + irFuncEnv.getCounter());
@@ -481,9 +539,12 @@ public class Visitor {
             if (irType instanceof IRArrayType) {
                 IRValue first = new IRValue(new IRPtrType(((IRArrayType) irType).getElementType()),
                         globalVariable.getName());
-                symbol.setArrayFirst(first);
+                if (symbol != null)
+                    symbol.setArrayFirst(first);
+
             }
-            symbol.setIRValue(globalVariable);
+            if (symbol != null)
+                symbol.setIRValue(globalVariable);
         } else {
             IRType irType = calType(bType, length);
             if (irType instanceof IRArrayType) {
@@ -495,9 +556,10 @@ public class Visitor {
                 IRValue first = new IRValue(new IRPtrType(((IRArrayType) irType).getElementType()),
                         constArray.getName()); // 数组首元素的地址
 
-                symbol.setIRValue(alloca); // 指向数组的指针
-                symbol.setArrayFirst(first); // 指向数组首元素的指针
-
+                if (symbol != null) {
+                    symbol.setIRValue(alloca); // 指向数组的指针
+                    symbol.setArrayFirst(first); // 指向数组首元素的指针
+                }
                 for (int i = 0; i < constArray.size(); ++i) {
                     ArrayList<IRValue> index = new ArrayList<>();
                     index.add(new IRConstant(IRIntType.I32(), 0));
@@ -583,17 +645,21 @@ public class Visitor {
             if (irType instanceof IRArrayType) {
                 IRValue first = new IRValue(new IRPtrType(((IRArrayType) irType).getElementType()),
                         globalVariable.getName());
-                symbol.setArrayFirst(first);
+                if (symbol != null)
+                    symbol.setArrayFirst(first);
             }
-            symbol.setIRValue(globalVariable);
+            if (symbol != null)
+                symbol.setIRValue(globalVariable);
         } else {
             if (irType instanceof IRArrayType) {
                 IRAlloca alloca = new IRAlloca(irType, "%var" + irFuncEnv.getCounter());
                 curBlock.addInstruction(alloca);
                 IRValue first = new IRValue(new IRPtrType(((IRArrayType) irType).getElementType()),
                         alloca.getName());
-                symbol.setIRValue(alloca);
-                symbol.setArrayFirst(first);
+                if (symbol != null) {
+                    symbol.setIRValue(alloca);
+                    symbol.setArrayFirst(first);
+                }
                 if (ret != null) { // 有初始值
                     for (int i = 0; i < ret.length; ++i) {
                         ArrayList<IRValue> indexes = new ArrayList<>();
@@ -610,7 +676,8 @@ public class Visitor {
             } else {
                 IRAlloca alloca = new IRAlloca(irType, "%var" + irFuncEnv.getCounter());
                 curBlock.addInstruction(alloca);
-                symbol.setIRValue(alloca);
+                if (symbol != null)
+                    symbol.setIRValue(alloca);
                 if (ret != null) {
                     IRValue toWrite = typeCheck((IRValue) ret[0], alloca);
                     IRStore store = new IRStore(toWrite, alloca);
@@ -708,7 +775,8 @@ public class Visitor {
         // IR
         irFuncEnv.setType(funcType);
         irModule.addFunction(irFuncEnv);
-        f.setIRValue(irFuncEnv);
+        if (f != null)
+            f.setIRValue(irFuncEnv);
         visitFuncBlock(funcDef.getFuncDefBlock(), type);
     }
 
@@ -862,8 +930,12 @@ public class Visitor {
         IRValue left = curValue;
         IRBr br = null;
         if (eqExp.getRelExps().isEmpty()) {
-            if (left.getType() != IRIntType.I1())
-                left = typeTrans(left, IRIntType.I1());
+            if (left.getType() != IRIntType.I1()) {
+                IRIcmp icmp = new IRIcmp(left, new IRConstant(IRIntType.I32(), 0), IRInstrType.Ne);
+                icmp.setName("%var" + irFuncEnv.getCounter());
+                curBlock.addInstruction(icmp);
+                left = icmp;
+            }
             br = new IRBr(left, trueLabel, falseLabel);
             curBlock.addInstruction(br);
             return;

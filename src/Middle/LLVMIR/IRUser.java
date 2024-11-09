@@ -17,7 +17,7 @@ public class IRUser extends IRValue implements Serializable {
         ArrayList<IRUse> uses = this.getUseList();
         for (IRUse use : uses) {
             if (use.isPstOperand(this, index)) {
-                return use.getBUsed();
+                return use.getUsee();
             }
         }
         System.out.println("??? NOT FOUND OPERAND ???");

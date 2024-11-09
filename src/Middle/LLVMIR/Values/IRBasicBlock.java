@@ -19,13 +19,21 @@ public class IRBasicBlock extends IRValue {
         this.instructions.add(instruction);
     }
 
+    public IRInstruction getInstruction(int index) {
+        if (index == -1)
+            return instructions.get(instructions.size()-1);
+        return instructions.get(index);
+    }
+
     public String getIR(String indent) {
         StringBuilder stringBuilder = new StringBuilder();
+        // stringBuilder.append("; ************************block start ****************************\n");
         for (IRInstruction instruction : instructions) {
             if (!(instruction instanceof IRLabel))
                 stringBuilder.append(indent).append(instruction.getIR());
             else stringBuilder.append(instruction.getIR());
         }
+        // stringBuilder.append("; *************************** block end *************************\n");
         return stringBuilder.toString();
     }
 }

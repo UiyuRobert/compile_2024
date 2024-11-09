@@ -40,8 +40,6 @@ public class Symbol {
 
     public IRValue getIRValue() { return value; }
 
-    public IRValue getFirst() { return first; }
-
     public String getName() { return name; }
 
     public int getLineNumber() { return lineNumber; }

@@ -2,7 +2,9 @@ package Middle.LLVMIR.Values;
 
 import Middle.LLVMIR.IRTypes.IRFuncType;
 import Middle.LLVMIR.IRTypes.IRType;
+import Middle.LLVMIR.IRUse;
 import Middle.LLVMIR.IRValue;
+import Middle.LLVMIR.Values.Instructions.IRLabel;
 
 import java.util.ArrayList;
 
@@ -27,6 +29,12 @@ public class IRFunction extends IRValue {
 
     public IRType getReturnType() {
         return ((IRFuncType)getType()).getReturnType();
+    }
+
+    private void replaceUsee(IRValue oldUsee, IRValue newUsee) {
+        for (IRUse u : IRUse.getUses()) {
+            if (u.getUsee() == oldUsee) u.setUsee(newUsee);
+        }
     }
 
     public String processParams(ArrayList<IRValue> params) {
