@@ -3,6 +3,7 @@ package Frontend.SyntaxAnalysis.Nodes;
 import Frontend.LexicalAnalysis.Token;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -38,8 +39,10 @@ public class InitValNode implements Node {
     public boolean isStrInit() { return (stringTerminal != null); }
 
     public String getStrInit() {
-        return stringTerminal.getValue().
+        String str = stringTerminal.getValue().
                 substring(1, stringTerminal.getValue().length() - 1);
+        str = str.replace("\\n","\n");
+        return str;
     }
 
     public List<ExpNode> getExpInits() {

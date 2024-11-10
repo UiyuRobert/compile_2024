@@ -35,7 +35,11 @@ public class ConstInitValNode implements Node {
 
     public boolean isStrVal() { return stringTerminal != null; }
 
-    public String getStrInit() { return stringTerminal.getValue().substring(1, stringTerminal.getValue().length() - 1); }
+    public String getStrInit() {
+        String str = stringTerminal.getValue().substring(1, stringTerminal.getValue().length() - 1);
+        str = str.replace("\\n","\n");
+        return str;
+    }
 
     public boolean isConstOnly() { return constExpNodeOnly != null; }
 

@@ -20,10 +20,18 @@ import Middle.Visitor;
 import static Middle.Symbols.SymbolTable.record;
 
 public class Compiler {
+    private static final String SYNTAX = "parser.txt";
+    private static String parserResult = null;
+    private static final String SYMBOL = "symbol.txt";
+    private static String symbolResult = null;
+    private static final String LLVM = "llvm_ir.txt";
+    private static String llvmResult = null;
+
+    private static int option = 2;
+
     public static void main(String[] args) throws FileNotFoundException {
         /*--参数设置--*/
         String inputFileName = "testfile.txt";
-        String result;
         /*--初始化 Lexer--*/
         FileReader fileReader = new FileReader(inputFileName);
         Lexer lexer = new Lexer(fileReader);
@@ -33,18 +41,19 @@ public class Compiler {
         /*-- 启动 Parser --*/
         Parser parser = new Parser(tokenList);
         CompUnitNode compUnit = parser.parse();
-        // result = parser.getParseResult();
+        parserResult = parser.getParseResult();
         // System.out.println(parser.getParseResult());
         /*-- 语义分析，中间代码生成 --*/
         Visitor visitor = new Visitor();
         IRModule module = visitor.visit(compUnit);
-        // result = sortAndGen(record); // 符号表
-        result = module.getIR();
+        symbolResult = sortAndGen(record); // 符号表
+        llvmResult = module.getIR();
         /*--判断是否有错误--*/
         if (ErrorHandling.isErrorOccurred()) {
             errorOutput();
         } else {
-            normalOutput(result);
+            normalOutput();
+            System.out.println(parserResult);
             // System.out.println(result);
         }
     }
@@ -71,8 +80,24 @@ public class Compiler {
         }
     }
 
-    private static void normalOutput(String output) {
-        String outputRightFileName = "llvm_ir.txt";
+    private static void normalOutput() {
+        String outputRightFileName = null;
+        String output = null;
+        switch (option) {
+            case 0:
+                outputRightFileName = SYNTAX;
+                output = parserResult;
+                break;
+            case 1:
+                outputRightFileName = SYMBOL;
+                output = symbolResult;
+                break;
+            case 2:
+                outputRightFileName = LLVM;
+                output = llvmResult;
+                break;
+            default: outputRightFileName = "output.txt"; break;
+        }
         try {
             BufferedWriter writer = new BufferedWriter(new FileWriter(outputRightFileName));
             writer.write(output);

@@ -213,7 +213,10 @@ public class StmtNode implements Node {
         public int getLineNum () { return printfTerminal.getLineNumber(); }
 
         public String getStringConst() {
-            return stringTerminal.getValue().substring(1, stringTerminal.getValue().length() - 1);
+            String str = stringTerminal.getValue()
+                    .substring(1, stringTerminal.getValue().length() - 1);
+            str = str.replace("\\n", "\n");
+            return str;
         }
 
         public List<ExpNode> getExps() {

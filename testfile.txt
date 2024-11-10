@@ -1,8 +1,12 @@
-int a, b;
+char str[4]  = {'a', 'b', 'c', 0};
+const char str4[4]  = {'a', 'b', 'c', 0};
 int main(){
-    b = 1;
-    a = getint();
-    if (!(1+2+3)) b = 0;
-    printf("%d\n", b);
-    return 0;
+int a = 4;
+char c = 9;
+
+if (!a) {
+    char str2[4]  = {'a', 'b', 'c', 0};
+    const char str3[4]  = {'a', 'b', 'c', 0};
+}
+return 0;
 }

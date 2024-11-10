@@ -388,7 +388,7 @@ public class Visitor {
 
         String[] segments = format.split("(?=%[cd])|(?<=%[cd])");
         for (int i = 0,j = 0; i < segments.length; ++i) {
-            if (segments[i].equals("%c") || segments[i].equals("%d")) {
+            if ((segments[i].equals("%c") || segments[i].equals("%d")) && j < exps.size()) {
                 visitExp(exps.get(j++));
                 IRValue toPrint = curValue;
                 if (toPrint.getType() == IRIntType.I8())
@@ -402,7 +402,6 @@ public class Visitor {
                 curBlock.addInstruction(call);
             } else {
                 String content = segments[i] + "\\00";
-                content = content.replace("\\n", "\n");
                 IRArrayType arrayType = new IRArrayType(IRIntType.I8(), content.length() - 2);
                 IRGlobalVariable strConst = new IRGlobalVariable(arrayType, content);
                 irModule.addStrPrivate(strConst);
