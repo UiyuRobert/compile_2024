@@ -53,7 +53,7 @@ public class Compiler {
             errorOutput();
         } else {
             normalOutput();
-            System.out.println(parserResult);
+            // System.out.println(parserResult);
             // System.out.println(result);
         }
     }

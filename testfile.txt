@@ -1,12 +1,19 @@
-char str[4]  = {'a', 'b', 'c', 0};
-const char str4[4]  = {'a', 'b', 'c', 0};
+/*char str[7]  = {'a', 'b', 'c', 0};
+const char str4[45]  = {'a', 'b', 'c', 0};*/
+int func() {
+    char str5[55]  = {'a', 'b', 'c', 0};
+    const char str6[4]  = {'a', 'b', 'c', 0};
+    return str5[67];
+}
 int main(){
 int a = 4;
 char c = 9;
 
 if (!a) {
     char str2[4]  = {'a', 'b', 'c', 0};
-    const char str3[4]  = {'a', 'b', 'c', 0};
+    const char str3[95]  = {'a', 'b', 'c', 0};
+} else if (!func()) {
+    return 6;
 }
-return 0;
+    return 0;
 }

@@ -721,6 +721,7 @@ public class Visitor {
                 for (int i = str.length(); i < length; i++) rets[i] = new IRConstant(IRIntType.I32(), 0);
                 return rets;
             }
+            rets = new IRValue[initVal.getExpInits().size()];
             int index = 0;
             for (ExpNode exp : initVal.getExpInits()) {
                 visitExp(exp);
