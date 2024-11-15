@@ -27,13 +27,13 @@ public class IRBasicBlock extends IRValue {
 
     public String getIR(String indent) {
         StringBuilder stringBuilder = new StringBuilder();
-        // stringBuilder.append("; ************************block start ****************************\n");
+        stringBuilder.append("; ************************block start ****************************\n");
         for (IRInstruction instruction : instructions) {
             if (!(instruction instanceof IRLabel))
                 stringBuilder.append(indent).append(instruction.getIR());
             else stringBuilder.append(instruction.getIR());
         }
-        // stringBuilder.append("; *************************** block end *************************\n");
+        stringBuilder.append("; *************************** block end *************************\n");
         return stringBuilder.toString();
     }
 }

@@ -1,5 +1,6 @@
 package Middle.LLVMIR.Values;
 
+import BackEnd.Assembly.GlobalVarAsm;
 import Middle.LLVMIR.IRTypes.IRArrayType;
 import Middle.LLVMIR.IRTypes.IRIntType;
 import Middle.LLVMIR.IRTypes.IRPtrType;
@@ -116,5 +117,22 @@ public class IRGlobalVariable extends IRValue {
         }
         sb.append("\n");
         return sb.toString();
+    }
+
+    public void toAssembly() {
+        if (isPrivate) {
+            String name = getName().substring(2); // 去掉 @.
+            new GlobalVarAsm.Asciiz(name, content);
+        } else if (elementTy == IRIntType.I8()) {
+            String name = getName().substring(1); // 去掉 @
+            int initVal = inits.isEmpty() ? 0 : inits.get(0);
+            new GlobalVarAsm.Byte(name, initVal);
+        } else if (elementTy == IRIntType.I32()) {
+            String name = getName().substring(1);
+            int initVal = inits.isEmpty() ? 0 : inits.get(0);
+            new GlobalVarAsm.Word(name, initVal);
+        } else { // 数组部分
+
+        }
     }
 }

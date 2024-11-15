@@ -31,12 +31,6 @@ public class IRFunction extends IRValue {
         return ((IRFuncType)getType()).getReturnType();
     }
 
-    private void replaceUsee(IRValue oldUsee, IRValue newUsee) {
-        for (IRUse u : IRUse.getUses()) {
-            if (u.getUsee() == oldUsee) u.setUsee(newUsee);
-        }
-    }
-
     public String processParams(ArrayList<IRValue> params) {
         StringBuilder ret = new StringBuilder();
         if (!params.isEmpty()) {

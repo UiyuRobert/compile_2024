@@ -13,4 +13,8 @@ public class IRLabel extends IRInstruction {
     public String getIR() {
         return "\n" + getName().substring(1) + ":\n";
     }
+
+    public void setEntry(String funcName) {
+        this.setName("%entry_" + funcName);
+    }
 }

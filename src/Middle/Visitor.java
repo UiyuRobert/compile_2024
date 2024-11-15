@@ -186,6 +186,9 @@ public class Visitor {
         IRFuncType funcType = new IRFuncType(IRIntType.I32());
         irFuncEnv = new IRFunction(funcType, "@main");
         curBlock = new IRBasicBlock("");
+        IRLabel label = new IRLabel();
+        label.setEntry("main");
+        curBlock.addInstruction(label);
         visitFuncBlock(mainFucDefNode.getBlock(), Symbol.Type.IntFunc);
         irModule.addFunction(irFuncEnv);
     }
@@ -747,6 +750,9 @@ public class Visitor {
         curTable = new SymbolTable(curTable, ++domainNumber);
         irFuncEnv = new IRFunction(IRVoidType.Void(), "@" + entry.getKey());
         curBlock = new IRBasicBlock("");
+        IRLabel label = new IRLabel();
+        label.setEntry(entry.getKey());
+        curBlock.addInstruction(label);
         IRFuncType funcType = new IRFuncType(calIRFuncType(funcDef.getFuncTypeNode()));
         if (funcDef.hasParams()) {
             List<Symbol> params = visitFuncFParams(funcDef.getFuncFParams());
