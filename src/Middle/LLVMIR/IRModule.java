@@ -1,5 +1,7 @@
 package Middle.LLVMIR;
 
+import BackEnd.Assembly.CommentAsm;
+import BackEnd.Assembly.JumpAsm;
 import Middle.LLVMIR.Values.IRFunction;
 import Middle.LLVMIR.Values.IRGlobalVariable;
 
@@ -39,5 +41,14 @@ public class IRModule{
         sb.append("\n");
         for (IRFunction f : functions) sb.append(f.getIR());
         return sb.toString();
+    }
+
+    public void toAssembly() {
+        for (IRGlobalVariable gv : globals) gv.toAssembly();
+        for (IRGlobalVariable gv : strPrivate) gv.toAssembly();
+        IRFunction mainfunc = functions.get(functions.size() - 1);
+
+        functions.remove(functions.size() - 1);
+
     }
 }

@@ -1,6 +1,9 @@
 package Middle.LLVMIR.Values;
 
 import BackEnd.Assembly.GlobalVarAsm;
+import BackEnd.Assembly.LiAsm;
+import BackEnd.Assembly.MemAsm;
+import BackEnd.Register;
 import Middle.LLVMIR.IRTypes.IRArrayType;
 import Middle.LLVMIR.IRTypes.IRIntType;
 import Middle.LLVMIR.IRTypes.IRPtrType;
@@ -132,7 +135,33 @@ public class IRGlobalVariable extends IRValue {
             int initVal = inits.isEmpty() ? 0 : inits.get(0);
             new GlobalVarAsm.Word(name, initVal);
         } else { // 数组部分
+            IRArrayType irType = (IRArrayType) elementTy;
+            if (irType.getElementType() == IRIntType.I32())
+                processArray(4, irType.getSize());
+            else if (irType.getElementType() == IRIntType.I8())
+                processArray(1, irType.getSize());
+            else {
+                System.out.println("WTF???? GL ARRAY TO ASM");
+            }
+        }
+    }
 
+    private boolean isNeedInitial() {
+        for (Integer init : inits)
+            if (init != 0) return true;
+        return false;
+    }
+
+    private void processArray(int elementSize, int arraySize) {
+        String name = getName().substring(1);
+        new GlobalVarAsm.Space(name, arraySize * elementSize);
+        if (isNeedInitial()) {
+            int offset = 0;
+            for (Integer init : inits) {
+                new LiAsm(Register.T0, init);
+                new MemAsm(MemAsm.Op.SW, Register.T0, name.substring(1), offset);
+                offset += elementSize;
+            }
         }
     }
 }
