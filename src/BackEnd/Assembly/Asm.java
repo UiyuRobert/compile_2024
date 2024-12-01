@@ -4,6 +4,6 @@ import BackEnd.MipsBuilder;
 
 public class Asm {
     public Asm() {
-        MipsBuilder.getInstance().addAsmInstr(this);
+        MipsBuilder.builder().addAsmInstr(this);
     }
 }

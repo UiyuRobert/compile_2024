@@ -9,6 +9,6 @@ public class CommentAsm extends Asm {
 
     @Override
     public String toString() {
-        return comment;
+        return "# " + comment + "\n";
     }
 }

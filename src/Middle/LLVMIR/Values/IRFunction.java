@@ -1,5 +1,7 @@
 package Middle.LLVMIR.Values;
 
+import BackEnd.Assembly.LabelAsm;
+import BackEnd.MipsBuilder;
 import Middle.LLVMIR.IRTypes.IRFuncType;
 import Middle.LLVMIR.IRTypes.IRType;
 import Middle.LLVMIR.IRUse;
@@ -53,5 +55,12 @@ public class IRFunction extends IRValue {
             builder.append(block.getIR("\t"));
         builder.append("}\n");
         return builder.toString();
+    }
+
+    public void toAssembly() {
+        new LabelAsm(this.getName().substring(1));
+        MipsBuilder builder = MipsBuilder.builder();
+        builder.enterNewFunction(this);
+
     }
 }

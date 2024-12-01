@@ -1,8 +1,14 @@
 package Middle.LLVMIR.Values.Instructions.Memory;
 
+import BackEnd.Assembly.AluAsm;
+import BackEnd.Assembly.CommentAsm;
+import BackEnd.Assembly.MemAsm;
+import BackEnd.MipsBuilder;
+import BackEnd.Register;
+import Middle.LLVMIR.IRTypes.IRArrayType;
+import Middle.LLVMIR.IRTypes.IRIntType;
 import Middle.LLVMIR.IRTypes.IRPtrType;
 import Middle.LLVMIR.IRTypes.IRType;
-import Middle.LLVMIR.IRValue;
 import Middle.LLVMIR.Values.Instructions.IRInstrType;
 import Middle.LLVMIR.Values.Instructions.IRInstruction;
 
@@ -25,5 +31,26 @@ public class IRAlloca extends IRInstruction {
         String builder = getName() + " = alloca " +
                 allocType.toString() + "\n";
         return builder;
+    }
+
+    public void toAsdembly() {
+        new CommentAsm(this.getIR());
+        // 分配空间
+        MipsBuilder builder = MipsBuilder.builder();
+        if (allocType instanceof IRArrayType) {
+            builder.allocMemoryInStack(((IRArrayType)allocType).getSizeInBytes());
+        } else if (allocType == IRIntType.I8()) {
+            builder.allocCharInStack();
+        } else {
+            builder.alloc4BitsInStack();
+        }
+        // 记录当前栈顶位置到 T0 (此时栈顶也是分配的空间的首地址)
+        int offset = builder.getStackOffset();
+        new AluAsm(AluAsm.Op.ADDI, Register.T0, Register.SP, offset);
+        // 从栈上开一个指针，存放 alloc 分配的地址的首地址
+        builder.alloc4BitsInStack();
+        offset = builder.getStackOffset();
+        builder.mapVarToStackOffset(this, offset);
+        new MemAsm(MemAsm.Op.SW, Register.T0, Register.SP, offset);
     }
 }

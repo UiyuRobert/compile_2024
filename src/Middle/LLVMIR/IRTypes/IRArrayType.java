@@ -22,4 +22,10 @@ public class IRArrayType implements IRType {
             return "[" + size + " x i32]";
         return "[" + size + " x i8]";
     }
+
+    public int getSizeInBytes() {
+        if (elementType == IRIntType.I32())
+            return size * 4;
+        return size;
+    }
 }

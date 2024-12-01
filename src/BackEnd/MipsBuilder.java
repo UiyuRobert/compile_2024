@@ -3,16 +3,25 @@ package BackEnd;
 import BackEnd.Assembly.Asm;
 import BackEnd.Assembly.GlobalVarAsm;
 import BackEnd.Assembly.LabelAsm;
+import Middle.LLVMIR.IRValue;
+import Middle.LLVMIR.Values.IRFunction;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class MipsBuilder {
     private static MipsBuilder mipsBuilder = new MipsBuilder();
-    public static MipsBuilder getInstance() { return  mipsBuilder; }
+    public static MipsBuilder builder() { return  mipsBuilder; }
 
     // 指令
     private ArrayList<Asm> dataSegment;
     private ArrayList<Asm> textSegment;
+
+    // 函数
+    private int curFunStackOffset; // 当前栈顶
+    private IRFunction curFunction; // 当前处理的函数
+    private HashMap<IRValue, Integer> var2StackOffset;  // 变量 -> 栈
+    private HashMap<IRValue, Register> var2Register; // 全局寄存器
 
     private MipsBuilder() {
         this.dataSegment = new ArrayList<>();
@@ -25,6 +34,25 @@ public class MipsBuilder {
         else
             this.textSegment.add(asm);
     }
+
+    public void enterNewFunction(IRFunction function) {
+        this.curFunStackOffset = 0;
+        this.curFunction = function;
+        var2StackOffset = new HashMap();
+        var2Register = new HashMap();
+    }
+
+    public void allocMemoryInStack(int size) { curFunStackOffset -= size; }
+
+    public void alloc4BitsInStack() { curFunStackOffset -= 4; }
+
+    public void allocCharInStack() { curFunStackOffset -= 1; }
+
+    public int getStackOffset() { return curFunStackOffset; }
+
+    public void mapVarToStackOffset(IRValue var, int offset) { var2StackOffset.put(var, offset); }
+
+    public int getVarOffsetInStack(IRValue var) { return var2StackOffset.get(var); }
 
     public String getResult() {
         StringBuilder result = new StringBuilder();

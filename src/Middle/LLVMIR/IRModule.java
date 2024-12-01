@@ -46,9 +46,12 @@ public class IRModule{
     public void toAssembly() {
         for (IRGlobalVariable gv : globals) gv.toAssembly();
         for (IRGlobalVariable gv : strPrivate) gv.toAssembly();
-        IRFunction mainfunc = functions.get(functions.size() - 1);
 
+        IRFunction mainFunc = functions.get(functions.size() - 1);
         functions.remove(functions.size() - 1);
+
+        for (IRFunction f : functions) f.toAssembly();
+        mainFunc.toAssembly();
 
     }
 }

@@ -1,3 +1,4 @@
+import BackEnd.MipsBuilder;
 import Frontend.LexicalAnalysis.Lexer;
 import Frontend.LexicalAnalysis.Token;
 import Frontend.LexicalAnalysis.TokenList;
@@ -6,7 +7,6 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -48,6 +48,8 @@ public class Compiler {
         IRModule module = visitor.visit(compUnit);
         symbolResult = sortAndGen(record); // 符号表
         llvmResult = module.getIR();
+        module.toAssembly();
+        System.out.println(MipsBuilder.builder().getResult());
         /*--判断是否有错误--*/
         if (ErrorHandling.isErrorOccurred()) {
             errorOutput();
