@@ -10,4 +10,10 @@ public class IRVoidType implements IRType {
     public String toString() {
         return "void";
     }
+
+    @Override
+    public int getByteSize() {
+        System.out.println("NOT VOID!!!");
+        return -1;
+    }
 }

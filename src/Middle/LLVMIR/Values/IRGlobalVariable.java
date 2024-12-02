@@ -122,16 +122,23 @@ public class IRGlobalVariable extends IRValue {
         return sb.toString();
     }
 
+    public String getMipsName() {
+        String name = getName();
+        if (isPrivate) return name.substring(2); // 去掉 @.
+        else return name.substring(1); // 去掉 @
+    }
+
+    @Override
     public void toAssembly() {
         if (isPrivate) {
-            String name = getName().substring(2); // 去掉 @.
+            String name = getMipsName();
             new GlobalVarAsm.Asciiz(name, content);
         } else if (elementTy == IRIntType.I8()) {
-            String name = getName().substring(1); // 去掉 @
+            String name = getMipsName();
             int initVal = inits.isEmpty() ? 0 : inits.get(0);
             new GlobalVarAsm.Byte(name, initVal);
         } else if (elementTy == IRIntType.I32()) {
-            String name = getName().substring(1);
+            String name = getMipsName();
             int initVal = inits.isEmpty() ? 0 : inits.get(0);
             new GlobalVarAsm.Word(name, initVal);
         } else { // 数组部分
@@ -153,14 +160,14 @@ public class IRGlobalVariable extends IRValue {
     }
 
     private void processArray(int elementSize, int arraySize) {
-        String name = getName().substring(1);
+        String name = getMipsName();
         new GlobalVarAsm.Space(name, arraySize * elementSize);
         if (isNeedInitial()) {
             int offset = 0;
             for (Integer init : inits) {
                 if (init == 0) continue;
-                new LiAsm(Register.T0, init);
-                new MemAsm(MemAsm.Op.SW, Register.T0, name, offset);
+                new LiAsm(Register.K0, init);
+                new MemAsm(MemAsm.Op.SW, Register.K0, name, offset);
                 offset += elementSize;
             }
         }

@@ -33,24 +33,25 @@ public class IRAlloca extends IRInstruction {
         return builder;
     }
 
-    public void toAsdembly() {
+    @Override
+    public void toAssembly() {
         new CommentAsm(this.getIR());
         // 分配空间
         MipsBuilder builder = MipsBuilder.builder();
         if (allocType instanceof IRArrayType) {
-            builder.allocMemoryInStack(((IRArrayType)allocType).getSizeInBytes());
+            builder.allocMemoryInStack(((IRArrayType)allocType).getByteSize());
         } else if (allocType == IRIntType.I8()) {
             builder.allocCharInStack();
         } else {
             builder.alloc4BitsInStack();
         }
-        // 记录当前栈顶位置到 T0 (此时栈顶也是分配的空间的首地址)
+        // 记录当前栈顶位置到 K0 (此时栈顶也是分配的空间的首地址)
         int offset = builder.getStackOffset();
-        new AluAsm(AluAsm.Op.ADDI, Register.T0, Register.SP, offset);
+        new AluAsm(AluAsm.Op.ADDI, Register.K0, Register.SP, offset);
         // 从栈上开一个指针，存放 alloc 分配的地址的首地址
         builder.alloc4BitsInStack();
         offset = builder.getStackOffset();
         builder.mapVarToStackOffset(this, offset);
-        new MemAsm(MemAsm.Op.SW, Register.T0, Register.SP, offset);
+        new MemAsm(MemAsm.Op.SW, Register.K0, Register.SP, offset);
     }
 }

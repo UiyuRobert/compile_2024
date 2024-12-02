@@ -1,8 +1,16 @@
 package Middle.LLVMIR.Values.Instructions.Terminal;
 
+import BackEnd.Assembly.CommentAsm;
+import BackEnd.Assembly.JumpAsm;
+import BackEnd.Assembly.LiAsm;
+import BackEnd.Assembly.MemAsm;
+import BackEnd.MipsBuilder;
+import BackEnd.Register;
+import Middle.LLVMIR.IRTypes.IRIntType;
 import Middle.LLVMIR.IRTypes.IRVoidType;
 import Middle.LLVMIR.IRUse;
 import Middle.LLVMIR.IRValue;
+import Middle.LLVMIR.Values.IRConstant;
 import Middle.LLVMIR.Values.Instructions.IRInstrType;
 import Middle.LLVMIR.Values.Instructions.IRInstruction;
 
@@ -33,5 +41,26 @@ public class IRReturn extends IRInstruction {
             return "ret void\n";
         else
             return "ret " + retVal.getType() + " " + retVal.getName() + "\n";
+    }
+
+    public void toAssembly() {
+        new CommentAsm(this.getIR());
+        MipsBuilder builder = MipsBuilder.builder();
+        if (!isVoid) {
+            // 有返回值
+            if (retVal instanceof IRConstant) {
+                new LiAsm(Register.V0, ((IRConstant) retVal).getValue());
+            } else {
+                /* TODO */
+                boolean isChar = retVal.getType() == IRIntType.I8();
+                int offset = builder.getVarOffsetInStack(retVal);
+                if (isChar)
+                    new MemAsm(MemAsm.Op.LB, Register.V0, Register.SP, offset);
+                else
+                    new MemAsm(MemAsm.Op.LW, Register.V0, Register.SP, offset);
+            }
+        }
+        // jr $ra
+        new JumpAsm(JumpAsm.Op.JR, Register.RA);
     }
 }

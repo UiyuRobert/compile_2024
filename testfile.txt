@@ -1,6 +1,14 @@
-
-int main() {
-    int a = 9;
-    a = 9 + a * 3;
+int index = 1;
+int main(){
+    int a = 9 * 9;
+    int b[4] = {3,5};
+    a = b[index];
+    index = 0;
+    /*int c = 0;
+    if (a > c) {
+        a = a + c;
+    } else {
+        c = c - a;
+    }*/
     return 0;
 }

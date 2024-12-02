@@ -25,4 +25,15 @@ public class IRPtrType implements IRType {
     public String toString() {
         return pointed.toString() + "*";
     }
+
+    @Override
+    public int getByteSize() { return 4; }
+
+    public int getPointedByteSize() {
+        if (pointed == IRIntType.I8()) return 1;
+        else if (pointed == IRIntType.I32()) return 4;
+        else if (pointed instanceof IRArrayType) return pointed.getByteSize();
+        System.out.println("BYTES SIZE OF PTR WRONG !!!");
+        return -1;
+    }
 }

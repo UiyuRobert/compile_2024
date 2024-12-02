@@ -2,6 +2,7 @@ package Middle.LLVMIR;
 
 import BackEnd.Assembly.CommentAsm;
 import BackEnd.Assembly.JumpAsm;
+import BackEnd.Assembly.LabelAsm;
 import Middle.LLVMIR.Values.IRFunction;
 import Middle.LLVMIR.Values.IRGlobalVariable;
 
@@ -51,7 +52,10 @@ public class IRModule{
         functions.remove(functions.size() - 1);
 
         for (IRFunction f : functions) f.toAssembly();
-        mainFunc.toAssembly();
 
+        new JumpAsm(JumpAsm.Op.JAL, "main");
+        new JumpAsm(JumpAsm.Op.J, "end");
+        mainFunc.toAssembly();
+        new LabelAsm("end");
     }
 }

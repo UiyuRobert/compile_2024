@@ -42,6 +42,8 @@ public class IRValue implements Serializable {
 
     public boolean isParam() { return isParam; }
 
+    public void toAssembly() { }
+
     public IRValue deepClone() {
         IRValue cloneVal = null;
         try {

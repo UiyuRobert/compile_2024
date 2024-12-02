@@ -58,9 +58,15 @@ public class IRFunction extends IRValue {
     }
 
     public void toAssembly() {
+        // 函数的开始 label
         new LabelAsm(this.getName().substring(1));
+
         MipsBuilder builder = MipsBuilder.builder();
         builder.enterNewFunction(this);
 
+        /*TODO*/
+        for (IRBasicBlock block : blocks) {
+            block.toAssembly();
+        }
     }
 }

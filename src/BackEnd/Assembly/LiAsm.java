@@ -19,6 +19,6 @@ public class LiAsm extends Asm {
 
     @Override
     public String toString() {
-        return "li " + rd + " " + number + "\n";
+        return "li " + rd + ", " + number + "\n";
     }
 }

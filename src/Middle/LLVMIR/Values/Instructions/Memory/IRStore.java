@@ -1,10 +1,18 @@
 package Middle.LLVMIR.Values.Instructions.Memory;
 
+import BackEnd.Assembly.CommentAsm;
+import BackEnd.Assembly.LaAsm;
+import BackEnd.Assembly.LiAsm;
+import BackEnd.Assembly.MemAsm;
+import BackEnd.MipsBuilder;
+import BackEnd.Register;
+import Middle.LLVMIR.IRTypes.IRIntType;
 import Middle.LLVMIR.IRTypes.IRPtrType;
 import Middle.LLVMIR.IRTypes.IRVoidType;
 import Middle.LLVMIR.IRUse;
 import Middle.LLVMIR.IRValue;
 import Middle.LLVMIR.Values.IRConstant;
+import Middle.LLVMIR.Values.IRGlobalVariable;
 import Middle.LLVMIR.Values.Instructions.IRInstrType;
 import Middle.LLVMIR.Values.Instructions.IRInstruction;
 
@@ -50,5 +58,40 @@ public class IRStore extends IRInstruction {
         builder.append(", ").append(valOfPtr.getType()).append(" ");
         builder.append(valOfPtr.getName()).append("\n");
         return builder.toString();
+    }
+
+    @Override
+    public void toAssembly() {
+        new CommentAsm(this.getIR());
+        MipsBuilder builder = MipsBuilder.builder();
+        Register pointerReg = Register.K0;
+        Register writeReg = Register.K1;
+
+        // 获取地址
+        if (valOfPtr instanceof IRGlobalVariable) {
+            new LaAsm(pointerReg, ((IRGlobalVariable) valOfPtr).getMipsName());
+        } else {
+            /* TODO */
+            int offset = builder.getVarOffsetInStack(valOfPtr);
+            new MemAsm(MemAsm.Op.LW, pointerReg, Register.SP, offset);
+        }
+        // 获取要存的值
+        boolean isChar = val2Write.getType() == IRIntType.I8();
+        if (val2Write instanceof IRConstant) {
+            new LiAsm(writeReg, ((IRConstant) val2Write).getValue());
+        } else {
+            /* TODO */
+            int offset = builder.getVarOffsetInStack(val2Write);
+            if (!isChar)
+                new MemAsm(MemAsm.Op.LW, writeReg, Register.SP, offset);
+            else
+                new MemAsm(MemAsm.Op.LB, writeReg, Register.SP, offset);
+        }
+
+        // 存值
+        if (!isChar)
+            new MemAsm(MemAsm.Op.SW, writeReg, pointerReg, 0);
+        else
+            new MemAsm(MemAsm.Op.SB, writeReg, pointerReg, 0);
     }
 }

@@ -36,4 +36,11 @@ public class IRBasicBlock extends IRValue {
         stringBuilder.append("; *************************** block end *************************\n");
         return stringBuilder.toString();
     }
+
+    @Override
+    public void toAssembly() {
+        for (IRInstruction instruction : instructions) {
+            instruction.toAssembly();
+        }
+    }
 }

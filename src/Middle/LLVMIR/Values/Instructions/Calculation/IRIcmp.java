@@ -1,8 +1,15 @@
 package Middle.LLVMIR.Values.Instructions.Calculation;
 
+import BackEnd.Assembly.CmpAsm;
+import BackEnd.Assembly.CommentAsm;
+import BackEnd.Assembly.LiAsm;
+import BackEnd.Assembly.MemAsm;
+import BackEnd.MipsBuilder;
+import BackEnd.Register;
 import Middle.LLVMIR.IRTypes.IRIntType;
 import Middle.LLVMIR.IRUse;
 import Middle.LLVMIR.IRValue;
+import Middle.LLVMIR.Values.IRConstant;
 import Middle.LLVMIR.Values.Instructions.IRInstrType;
 import Middle.LLVMIR.Values.Instructions.IRInstruction;
 
@@ -64,5 +71,74 @@ public class IRIcmp extends IRInstruction {
                 System.out.println("WTF ??? NO SUCH ICMP TYPE");
                 return null;
         }
+    }
+
+    public void toAssembly() {
+        new CommentAsm(this.getIR());
+        MipsBuilder builder = MipsBuilder.builder();
+        Register resultReg = Register.K0;
+        Register leftReg = Register.K0;
+        Register rightReg = Register.K0;
+
+        // 如果两个都为常数，直接处理
+        if (operand1 instanceof IRConstant && operand2 instanceof IRConstant) {
+            int ret = constantCmp();
+            new LiAsm(resultReg, ret);
+        } else {
+            // 处理 operand1
+            if (operand1 instanceof IRConstant) {
+                new LiAsm(leftReg, ((IRConstant) operand1).getValue());
+            } else {
+                /* TODO */
+                int offset = builder.getVarOffsetInStack(operand1);
+                new MemAsm(MemAsm.Op.LW, leftReg, Register.SP, offset);
+            }
+
+            // 处理 operand2
+            if (operand2 instanceof IRConstant) {
+                new LiAsm(leftReg, ((IRConstant) operand2).getValue());
+            } else {
+                /* TODO */
+                int offset = builder.getVarOffsetInStack(operand2);
+                new MemAsm(MemAsm.Op.LW, rightReg, Register.SP, offset);
+            }
+
+            // 比较
+            switch (this.getInstrType()) {
+                case Eq : new CmpAsm(CmpAsm.Op.SEQ, resultReg, leftReg, rightReg); break;
+                case Ne: new CmpAsm(CmpAsm.Op.SNE, resultReg, leftReg, rightReg); break;
+                case Sgt: new CmpAsm(CmpAsm.Op.SGT, resultReg, leftReg, rightReg); break;
+                case Sge: new CmpAsm(CmpAsm.Op.SGE, resultReg, leftReg, rightReg); break;
+                case Slt: new CmpAsm(CmpAsm.Op.SLT, resultReg, leftReg, rightReg); break;
+                case Sle: new CmpAsm(CmpAsm.Op.SLE, resultReg, leftReg, rightReg); break;
+            }
+
+            // 存值, I1 都用 4byte 存
+            builder.alloc4BitsInStack();
+            int offset = builder.getStackOffset();
+            builder.mapVarToStackOffset(this, offset);
+            new MemAsm(MemAsm.Op.SW, resultReg, Register.SP, offset);
+        }
+    }
+
+    private int constantCmp() {
+        if (operand1 instanceof IRConstant && operand2 instanceof IRConstant) {
+            int value1 = ((IRConstant) operand1).getValue();
+            int value2 = ((IRConstant) operand2).getValue();
+            boolean ret = false;
+            switch (this.getInstrType()) {
+                case Eq : ret = (value1 == value2); break;
+                case Ne: ret = (value1 != value2); break;
+                case Sgt: ret = (value1 > value2); break;
+                case Sge: ret = (value1 >= value2); break;
+                case Slt: ret = (value1 < value2); break;
+                case Sle: ret = (value1 <= value2); break;
+                default:
+                    System.out.println("WTF ??? NO SUCH ICMP TYPE");
+            }
+            return ret ? 1 : 0;
+        }
+        System.out.println("WTF ??? NOT CONSTANT");
+        return -1;
     }
 }

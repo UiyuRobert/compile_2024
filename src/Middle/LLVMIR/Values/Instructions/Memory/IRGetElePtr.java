@@ -1,5 +1,11 @@
 package Middle.LLVMIR.Values.Instructions.Memory;
 
+import BackEnd.Assembly.AluAsm;
+import BackEnd.Assembly.CommentAsm;
+import BackEnd.Assembly.LaAsm;
+import BackEnd.Assembly.MemAsm;
+import BackEnd.MipsBuilder;
+import BackEnd.Register;
 import Middle.LLVMIR.IRTypes.IRArrayType;
 import Middle.LLVMIR.IRTypes.IRIntType;
 import Middle.LLVMIR.IRTypes.IRPtrType;
@@ -7,6 +13,7 @@ import Middle.LLVMIR.IRTypes.IRType;
 import Middle.LLVMIR.IRUse;
 import Middle.LLVMIR.IRValue;
 import Middle.LLVMIR.Values.IRConstant;
+import Middle.LLVMIR.Values.IRGlobalVariable;
 import Middle.LLVMIR.Values.Instructions.IRInstrType;
 import Middle.LLVMIR.Values.Instructions.IRInstruction;
 
@@ -93,5 +100,61 @@ public class IRGetElePtr extends IRInstruction {
         }
         builder.append(")");
         return builder.toString();
+    }
+
+    @Override
+    public void toAssembly() {
+        new CommentAsm(this.getIR());
+        IRValue curStruct = structVal; //指向数据结构的指针
+        Register baseReg = Register.K0;
+        Register resultReg = Register.K0;
+        Register offsetReg = Register.K1;
+        MipsBuilder builder = MipsBuilder.builder();
+
+        // 获取数组基地址
+        if (curStruct instanceof IRGlobalVariable) {
+            // 如果是全局变量
+            new LaAsm(baseReg, ((IRGlobalVariable) curStruct).getMipsName());
+        } else {
+            /* TODO */ // 如果是函数参数
+            // 是局部变量
+            int offset = builder.getVarOffsetInStack(curStruct);
+            new MemAsm(MemAsm.Op.LW, baseReg, Register.SP, offset);
+        }
+
+        IRType curRank = ((IRPtrType)structVal.getType()).getPointed(); // 当前解析到的层
+        IRValue curIndex = index.get(0);
+
+        // 获取偏移量
+        if (index.size() > 1) { // 是数组
+            curIndex = index.get(index.size() - 1); // 有实际影响的 index
+            curRank = ((IRArrayType) curRank).getElementType();
+        }
+
+        // 如果 index 为 0, 那么 基地址 即为所求, 也就是 baseReg = resultReg
+        if (curIndex instanceof IRConstant) {
+            // 常数
+            if (((IRConstant) curIndex).getValue() != 0)
+                new AluAsm(AluAsm.Op.ADDI, resultReg, baseReg,
+                    ((IRConstant) curIndex).getValue() * curRank.getByteSize());
+        } else {
+            // 变量
+            /* TODO */ // 可能为函数参数
+            int stackOffset = builder.getVarOffsetInStack(curIndex);
+            new MemAsm(MemAsm.Op.LW, offsetReg, Register.SP, stackOffset);
+
+            if (curRank == IRIntType.I32()) { // 是 int 则 *4
+                new AluAsm(AluAsm.Op.SLL, Register.K1, offsetReg, 2);
+                // 基地址 + 便宜量 -> 结果
+                new AluAsm(AluAsm.Op.ADDU, resultReg, baseReg, Register.K1);
+            } else // 是 char 则直接使用
+                new AluAsm(AluAsm.Op.ADDU, resultReg, baseReg, offsetReg);
+        }
+
+        // 将结果存到栈里
+        builder.alloc4BitsInStack();
+        int offset = builder.getStackOffset();
+        builder.mapVarToStackOffset(this, offset);
+        new MemAsm(MemAsm.Op.SW, resultReg, Register.SP, offset);
     }
 }

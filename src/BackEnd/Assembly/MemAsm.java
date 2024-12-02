@@ -41,8 +41,8 @@ public class MemAsm extends Asm {
     @Override
     public String toString() {
         if (label == null) {
-            return op.toString().toLowerCase() + " " + rd + " " + offset + "(" + base + ")\n";
+            return op.toString().toLowerCase() + " " + rd + ", " + offset + "(" + base + ")\n";
         }
-        return op.toString().toLowerCase() + " " + rd + " " + label + "+" + offset + "\n";
+        return op.toString().toLowerCase() + " " + rd + ", " + label + "+" + offset + "\n";
     }
 }

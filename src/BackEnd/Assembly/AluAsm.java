@@ -41,8 +41,8 @@ public class AluAsm extends Asm {
     @Override
     public String toString() {
         if (op.ordinal() >= Op.ADD.ordinal() && op.ordinal() <= Op.SRLV.ordinal()) {
-            return op.toString().toLowerCase() + " " + rd + " " + rs + " " + rt + "\n";
+            return op.toString().toLowerCase() + " " + rd + ", " + rs + ", " + rt + "\n";
         }
-        return op.toString().toLowerCase() + " " + rd + " " + rs + " " + number + "\n";
+        return op.toString().toLowerCase() + " " + rd + ", " + rs + ", " + number + "\n";
     }
 }

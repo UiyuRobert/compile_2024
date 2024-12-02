@@ -23,6 +23,9 @@ public class IRIntType implements IRType {
     public static IRIntType I1() { return I1; }
 
     @Override
+    public int getByteSize() { return bits / 8; }
+
+    @Override
     public String toString() {
         if(bits == 32) return "i32";
         else if(bits == 8) return "i8";

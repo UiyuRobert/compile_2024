@@ -62,15 +62,17 @@ public class IRBinaryInstr extends IRInstruction {
         return sb.toString();
     }
 
+    @Override
     public void toAssembly() {
+        // 此处不需要考虑类型，因为在计算中将所有算术运算的数全部转为了 i32
         new CommentAsm(this.getIR());
         MipsBuilder builder = MipsBuilder.builder();
 
         IRValue left = this.getOperand(0);
         IRValue right = this.getOperand(1);
-        Register reg1 =Register.T0;
-        Register reg2 =Register.T1;
-        Register target = Register.T0;
+        Register reg1 =Register.K0;
+        Register reg2 =Register.K1;
+        Register target = Register.K0;
 
         if (left instanceof IRConstant) {
             new LiAsm(reg1, ((IRConstant) left).getValue());
@@ -81,11 +83,11 @@ public class IRBinaryInstr extends IRInstruction {
         }
 
         if (right instanceof IRConstant) {
-            new LiAsm(reg1, ((IRConstant) right).getValue());
+            new LiAsm(reg2, ((IRConstant) right).getValue());
         } else { // 从栈中把值取出来
             /*  TODO */ // 为参数时
             int offset = builder.getVarOffsetInStack(right);
-            new MemAsm(MemAsm.Op.LW, reg1, Register.SP, offset);
+            new MemAsm(MemAsm.Op.LW, reg2, Register.SP, offset);
         }
 
         IRInstrType op = this.getInstrType();

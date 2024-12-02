@@ -23,7 +23,8 @@ public class IRArrayType implements IRType {
         return "[" + size + " x i8]";
     }
 
-    public int getSizeInBytes() {
+    @Override
+    public int getByteSize() {
         if (elementType == IRIntType.I32())
             return size * 4;
         return size;

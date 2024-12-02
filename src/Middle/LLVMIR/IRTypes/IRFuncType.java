@@ -23,4 +23,10 @@ public class IRFuncType implements IRType {
     public ArrayList<IRValue> getParameters(){
         return parameters;
     }
+
+    @Override
+    public int getByteSize() {
+        System.out.println("NOT FUNC !!!");
+        return -1;
+    }
 }
