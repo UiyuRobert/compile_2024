@@ -61,8 +61,7 @@ public class IRLoad extends IRInstruction {
         else new MemAsm(MemAsm.Op.LW, resultReg, pointerReg, 0);
 
         // 将值存入栈中
-        if (isChar) builder.allocCharInStack();
-        else builder.alloc4BitsInStack();
+        builder.alloc4BitsInStack();
 
         int offset = builder.getStackOffset();
         builder.mapVarToStackOffset(this, offset);

@@ -1,9 +1,6 @@
 package Middle.LLVMIR.Values.Instructions.TypeCasting;
 
-import BackEnd.Assembly.CmpAsm;
-import BackEnd.Assembly.CommentAsm;
-import BackEnd.Assembly.LiAsm;
-import BackEnd.Assembly.MemAsm;
+import BackEnd.Assembly.*;
 import BackEnd.MipsBuilder;
 import BackEnd.Register;
 import Middle.LLVMIR.IRTypes.IRIntType;
@@ -59,12 +56,19 @@ public class IRTrunc extends IRInstruction {
             }
             // I1 直接存
             new MemAsm(MemAsm.Op.SW, resultReg, Register.SP, offset);
+            builder.mapVarToStackOffset(this, offset);
         } else if (this.getType() == IRIntType.I8()) {
             if (toTrunc instanceof IRConstant) {
                 int value = ((IRConstant) toTrunc).getValue();
                 value &= 0xff;
-
+                new LiAsm(resultReg, value);
+            } else {
+                new MemAsm(MemAsm.Op.LW, srcReg, Register.SP, offset);
+                // 截断高位，只保留后8位
+                new AluAsm(AluAsm.Op.ANDI, resultReg, srcReg, 0xff);
             }
+            new MemAsm(MemAsm.Op.SW, resultReg, Register.SP, offset);
+            builder.mapVarToStackOffset(this, offset);
         } else {
             System.out.println("WTF ??? TRUNC");
         }

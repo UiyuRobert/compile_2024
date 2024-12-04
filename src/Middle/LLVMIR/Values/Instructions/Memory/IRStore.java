@@ -82,16 +82,11 @@ public class IRStore extends IRInstruction {
         } else {
             /* TODO */
             int offset = builder.getVarOffsetInStack(val2Write);
-            if (!isChar)
-                new MemAsm(MemAsm.Op.LW, writeReg, Register.SP, offset);
-            else
-                new MemAsm(MemAsm.Op.LB, writeReg, Register.SP, offset);
+            new MemAsm(MemAsm.Op.LW, writeReg, Register.SP, offset);
         }
 
         // 存值
-        if (!isChar)
-            new MemAsm(MemAsm.Op.SW, writeReg, pointerReg, 0);
-        else
-            new MemAsm(MemAsm.Op.SB, writeReg, pointerReg, 0);
+        new MemAsm(MemAsm.Op.SW, writeReg, pointerReg, 0);
+
     }
 }

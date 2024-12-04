@@ -1,5 +1,11 @@
 package Middle.LLVMIR.Values.Instructions.Terminal;
 
+import BackEnd.Assembly.BranchAsm;
+import BackEnd.Assembly.CommentAsm;
+import BackEnd.Assembly.JumpAsm;
+import BackEnd.Assembly.MemAsm;
+import BackEnd.MipsBuilder;
+import BackEnd.Register;
 import Middle.LLVMIR.IRTypes.IRIntType;
 import Middle.LLVMIR.IRTypes.IRVoidType;
 import Middle.LLVMIR.IRUse;
@@ -25,6 +31,7 @@ public class IRBr extends IRInstruction {
         this.cond = cond;
         this.trueLabel = trueLabel;
         this.falseLabel = falseLabel;
+        this.dest = null;
         IRUse use1 = new IRUse(this, cond, 0);
         this.addUse(use1);
         cond.addUse(use1);
@@ -55,5 +62,20 @@ public class IRBr extends IRInstruction {
             sb.append(", label ").append(falseLabel.getName()).append("\n");
             return sb.toString();
         }
+    }
+
+    public void toAssembly() {
+        /* TODO*/ // 只从栈中取值
+        new CommentAsm(this.getIR());
+        MipsBuilder builder = MipsBuilder.builder();
+        Register condReg = Register.K0; // 放 I1 条件
+
+        int condOffset = builder.getVarOffsetInStack(cond);
+        new MemAsm(MemAsm.Op.LW, condReg, Register.SP, condOffset);
+
+        // 如果 cond != 0 则跳转到 trueLabel
+        new BranchAsm(BranchAsm.Op.BNE, condReg, Register.ZERO, trueLabel.getMipsName());
+        // 否则跳转到 falseLabel
+        new JumpAsm(JumpAsm.Op.J, falseLabel.getMipsName());
     }
 }

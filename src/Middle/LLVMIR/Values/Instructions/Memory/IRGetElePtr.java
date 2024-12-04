@@ -145,7 +145,7 @@ public class IRGetElePtr extends IRInstruction {
 
             if (curRank == IRIntType.I32()) { // 是 int 则 *4
                 new AluAsm(AluAsm.Op.SLL, Register.K1, offsetReg, 2);
-                // 基地址 + 便宜量 -> 结果
+                // 基地址 + 偏移量 -> 结果
                 new AluAsm(AluAsm.Op.ADDU, resultReg, baseReg, Register.K1);
             } else // 是 char 则直接使用
                 new AluAsm(AluAsm.Op.ADDU, resultReg, baseReg, offsetReg);

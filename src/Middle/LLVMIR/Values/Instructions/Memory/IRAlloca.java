@@ -40,8 +40,6 @@ public class IRAlloca extends IRInstruction {
         MipsBuilder builder = MipsBuilder.builder();
         if (allocType instanceof IRArrayType) {
             builder.allocMemoryInStack(((IRArrayType)allocType).getByteSize());
-        } else if (allocType == IRIntType.I8()) {
-            builder.allocCharInStack();
         } else {
             builder.alloc4BitsInStack();
         }

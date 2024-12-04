@@ -52,7 +52,7 @@ public class IRGlobalVariable extends IRValue {
         super(new IRPtrType(type));
         isPrivate = true;
         elementTy = type;
-        String name = privateCount == 0 ? "@.str" : "@.str." + privateCount;
+        String name = "@pvtstr" + privateCount;
         privateCount++;
         this.setName(name);
         this.content = content.replace("\n", "\\0A");
@@ -124,8 +124,7 @@ public class IRGlobalVariable extends IRValue {
 
     public String getMipsName() {
         String name = getName();
-        if (isPrivate) return name.substring(2); // 去掉 @.
-        else return name.substring(1); // 去掉 @
+        return name.substring(1); // 去掉 @
     }
 
     @Override

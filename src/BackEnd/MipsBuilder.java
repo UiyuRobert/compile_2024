@@ -8,6 +8,7 @@ import Middle.LLVMIR.Values.IRFunction;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 
 public class MipsBuilder {
     private static MipsBuilder mipsBuilder = new MipsBuilder();
@@ -39,14 +40,19 @@ public class MipsBuilder {
         this.curFunStackOffset = 0;
         this.curFunction = function;
         var2StackOffset = new HashMap();
-        var2Register = new HashMap();
+        // var2Register = new HashMap();
     }
 
     public void allocMemoryInStack(int size) { curFunStackOffset -= size; }
 
-    public void alloc4BitsInStack() { curFunStackOffset -= 4; }
+    public ArrayList<Register> getAllocatedRegs() {
+        if (var2Register == null) return new ArrayList<>();
+        return new ArrayList<>(new HashSet<>(var2Register.values()));
+    }
 
-    public void allocCharInStack() { curFunStackOffset -= 1; }
+    public boolean useRegister() { return var2Register != null; }
+
+    public void alloc4BitsInStack() { curFunStackOffset -= 4; }
 
     public int getStackOffset() { return curFunStackOffset; }
 

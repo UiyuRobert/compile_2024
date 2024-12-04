@@ -40,7 +40,6 @@ public class IRZext extends IRInstruction {
         // 只有转 I32，不存在转 I8
         new CommentAsm(this.getIR());
         MipsBuilder builder = MipsBuilder.builder();
-        Register valReg = Register.K0;
 
         /*TODO*/ // 目前只考虑要转换的值在栈中
         if (toExt.getType() == IRIntType.I1()) {
@@ -48,14 +47,9 @@ public class IRZext extends IRInstruction {
             // 把 Zext 后的结果也映射到 toExt 上
             builder.mapVarToStackOffset(this, builder.getVarOffsetInStack(toExt));
         } else if (toExt.getType() == IRIntType.I8()) {
-            // 加载旧值
-            int offset = builder.getVarOffsetInStack(toExt);
-            new MemAsm(MemAsm.Op.LBU, valReg, Register.SP, offset);
-            // 开辟新值
-            builder.alloc4BitsInStack();
-            offset = builder.getStackOffset();
-            builder.mapVarToStackOffset(this, offset);
-            new MemAsm(MemAsm.Op.SW, valReg, Register.SP, offset);
+            // I8 在栈中都用 4Byte 来存，所以可以直接映射
+            new CommentAsm("I8 都用 4Byte 来存，不需要转换\n");
+            builder.mapVarToStackOffset(this, builder.getVarOffsetInStack(toExt));
         }
     }
 }

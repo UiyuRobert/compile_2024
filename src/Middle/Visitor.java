@@ -398,9 +398,9 @@ public class Visitor {
                     toPrint = typeTrans(toPrint, IRIntType.I32());
                 IRCall call = null;
                 if (segments[i].equals("%c")) {
-                    call = new IRCall("putchar", toPrint);
+                    call = new IRCall("putchar", toPrint, null);
                 } else
-                    call = new IRCall("putint", toPrint);
+                    call = new IRCall("putint", toPrint, null);
 
                 curBlock.addInstruction(call);
             } else {
@@ -412,7 +412,7 @@ public class Visitor {
                 indexes.add(new IRConstant(IRIntType.I64(), 0));
                 indexes.add(new IRConstant(IRIntType.I64(), 0));
                 IRGetElePtr gep = new IRGetElePtr(strConst, indexes);
-                IRCall call = new IRCall("putstr", gep);
+                IRCall call = new IRCall("putstr", gep, strConst);
                 curBlock.addInstruction(call);
             }
         }

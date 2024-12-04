@@ -62,7 +62,14 @@ public class IRFunction extends IRValue {
         new LabelAsm(this.getName().substring(1));
 
         MipsBuilder builder = MipsBuilder.builder();
+        // 进入新函数清空了 新$SP的offset，但是因为有函数参数的存在，需要设置参数与offset的对应关系
         builder.enterNewFunction(this);
+        ArrayList<IRValue> parameters = ((IRFuncType)this.getType()).getParameters();
+        for (IRValue param : parameters) {
+            builder.alloc4BitsInStack();
+            int offset = builder.getStackOffset();
+            builder.mapVarToStackOffset(param, offset);
+        }
 
         /*TODO*/
         for (IRBasicBlock block : blocks) {

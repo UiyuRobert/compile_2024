@@ -1,5 +1,6 @@
 package Middle.LLVMIR.Values.Instructions;
 
+import BackEnd.Assembly.LabelAsm;
 import Middle.LLVMIR.IRTypes.IRLabelType;
 
 public class IRLabel extends IRInstruction {
@@ -16,5 +17,14 @@ public class IRLabel extends IRInstruction {
 
     public void setEntry(String funcName) {
         this.setName("%entry_" + funcName);
+    }
+
+    public String getMipsName() {
+        return getName().substring(1);
+    }
+
+    @Override
+    public void toAssembly() {
+        new LabelAsm(getMipsName());
     }
 }
