@@ -58,7 +58,10 @@ public class MipsBuilder {
 
     public void mapVarToStackOffset(IRValue var, int offset) { var2StackOffset.put(var, offset); }
 
-    public int getVarOffsetInStack(IRValue var) { return var2StackOffset.get(var); }
+    public Integer getVarOffsetInStack(IRValue var) {
+        if (var2StackOffset.containsKey(var)) return var2StackOffset.get(var);
+        return null;
+    }
 
     public String getResult() {
         StringBuilder result = new StringBuilder();
@@ -66,7 +69,8 @@ public class MipsBuilder {
         for (Asm asm : this.dataSegment)
             result.append(asm.toString());
 
-        result.append("\n.text\n");
+        result.append("\n.text\n.globl main\n");
+
 
         for (Asm asm : this.textSegment)
             if (asm instanceof LabelAsm) result.append(asm.toString());

@@ -115,8 +115,10 @@ public class IRCall extends IRInstruction {
 
     private void input2Assembly() {
         MipsBuilder builder = MipsBuilder.builder();
-
-        new LiAsm(Register.V0, 5);
+        if (functionName.equals("@getint"))
+            new LiAsm(Register.V0, 5);
+        else
+            new LiAsm(Register.V0, 12);
         new SyscallAsm();
         /* TODO */ // 给this分配寄存器后
         builder.alloc4BitsInStack();
@@ -148,7 +150,7 @@ public class IRCall extends IRInstruction {
                 new LiAsm(Register.A0, value);
             } else {
                 int offset = builder.getVarOffsetInStack(speArg);
-                new MemAsm(MemAsm.Op.LB, Register.A0, Register.SP, offset);
+                new MemAsm(MemAsm.Op.LBU, Register.A0, Register.SP, offset);
             }
         } else {
             // putstr()

@@ -48,14 +48,10 @@ public class IRModule{
         for (IRGlobalVariable gv : globals) gv.toAssembly();
         for (IRGlobalVariable gv : strPrivate) gv.toAssembly();
 
-        IRFunction mainFunc = functions.get(functions.size() - 1);
-        functions.remove(functions.size() - 1);
-
-        for (IRFunction f : functions) f.toAssembly();
-
         new JumpAsm(JumpAsm.Op.JAL, "main");
         new JumpAsm(JumpAsm.Op.J, "end");
-        mainFunc.toAssembly();
+        for (IRFunction f : functions) f.toAssembly();
+
         new LabelAsm("end");
     }
 }

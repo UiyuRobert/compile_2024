@@ -26,8 +26,10 @@ public class Compiler {
     private static String symbolResult = null;
     private static final String LLVM = "llvm_ir.txt";
     private static String llvmResult = null;
+    private static final String MIPS = "mips.txt";
+    private static String mipsResult = null;
 
-    private static int option = 2;
+    private static int option = 3;
 
     public static void main(String[] args) throws FileNotFoundException {
         /*--参数设置--*/
@@ -49,7 +51,8 @@ public class Compiler {
         symbolResult = sortAndGen(record); // 符号表
         llvmResult = module.getIR();
         module.toAssembly();
-        System.out.println(MipsBuilder.builder().getResult());
+        mipsResult = MipsBuilder.builder().getResult();
+        //System.out.println(mipsResult);
         /*--判断是否有错误--*/
         if (ErrorHandling.isErrorOccurred()) {
             errorOutput();
@@ -98,6 +101,11 @@ public class Compiler {
                 outputRightFileName = LLVM;
                 output = llvmResult;
                 break;
+            case 3:
+                outputRightFileName = MIPS;
+                output = mipsResult;
+                break;
+
             default: outputRightFileName = "output.txt"; break;
         }
         try {

@@ -53,15 +53,20 @@ public class GlobalVarAsm extends Asm {
     public static class Space extends GlobalVarAsm {
         private String name;
         private int size;
+        private boolean isInt;
 
-        public Space(String name, int size) {
+        public Space(String name, int size, boolean isInt) {
             this.name = name;
             this.size = size;
+            this.isInt = isInt;
         }
 
         @Override
         public String toString() {
-            return name + ": .space " + size + "\n";
+            if (isInt)
+                return ".align 2\n" + name + ": .space " + size + "\n";
+            else
+                return name + ": .space " + size + "\n";
         }
     }
 }

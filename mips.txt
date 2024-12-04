@@ -1,0 +1,320 @@
+.data
+
+.text
+.globl main
+    jal main
+    j end
+
+g:
+entry_g:    
+# %var2 = alloca i32*
+    addi $k0, $sp, -8
+    sw $k0, -12($sp)
+    
+# store i32* %var1, i32** %var2
+    lw $k0, -12($sp)
+    lw $k1, -4($sp)
+    sw $k1, 0($k0)
+    
+# %var3 = load i32*, i32** %var2
+    lw $k0, -12($sp)
+    lw $k0, 0($k0)
+    sw $k0, -16($sp)
+    
+# %var4 = getelementptr inbounds i32, i32* %var3, i32 0
+    lw $k0, -16($sp)
+    sw $k0, -20($sp)
+    
+# %var5 = load i32, i32* %var4
+    lw $k0, -20($sp)
+    lw $k0, 0($k0)
+    sw $k0, -24($sp)
+    
+# %var6 = load i32*, i32** %var2
+    lw $k0, -12($sp)
+    lw $k0, 0($k0)
+    sw $k0, -28($sp)
+    
+# %var7 = getelementptr inbounds i32, i32* %var6, i32 1
+    lw $k0, -28($sp)
+    addi $k0, $k0, 4
+    sw $k0, -32($sp)
+    
+# %var8 = load i32, i32* %var7
+    lw $k0, -32($sp)
+    lw $k0, 0($k0)
+    sw $k0, -36($sp)
+    
+# %var9 = load i32*, i32** %var2
+    lw $k0, -12($sp)
+    lw $k0, 0($k0)
+    sw $k0, -40($sp)
+    
+# %var10 = getelementptr inbounds i32, i32* %var9, i32 0
+    lw $k0, -40($sp)
+    sw $k0, -44($sp)
+    
+# %var11 = load i32, i32* %var10
+    lw $k0, -44($sp)
+    lw $k0, 0($k0)
+    sw $k0, -48($sp)
+    
+# %var12 = sub nsw i32 0, %var11
+    li $k0, 0
+    lw $k1, -48($sp)
+    subu $k0, $k0, $k1
+    sw $k0, -52($sp)
+    
+# %var13 = add nsw i32 %var8, %var12
+    lw $k0, -36($sp)
+    lw $k1, -52($sp)
+    addu $k0, $k0, $k1
+    sw $k0, -56($sp)
+    
+# %var14 = load i32*, i32** %var2
+    lw $k0, -12($sp)
+    lw $k0, 0($k0)
+    sw $k0, -60($sp)
+    
+# %var15 = getelementptr inbounds i32, i32* %var14, i32 %var13
+    lw $k0, -60($sp)
+    lw $k1, -56($sp)
+    sll $k1, $k1, 2
+    addu $k0, $k0, $k1
+    sw $k0, -64($sp)
+    
+# %var16 = load i32, i32* %var15
+    lw $k0, -64($sp)
+    lw $k0, 0($k0)
+    sw $k0, -68($sp)
+    
+# %var17 = add nsw i32 %var5, %var16
+    lw $k0, -24($sp)
+    lw $k1, -68($sp)
+    addu $k0, $k0, $k1
+    sw $k0, -72($sp)
+    
+# ret i32 %var17
+    lw $v0, -72($sp)
+    jr $ra
+
+main:
+entry_main:    
+# %var1 = alloca i8
+    addi $k0, $sp, -4
+    sw $k0, -8($sp)
+    
+# store i8 97, i8* %var1
+    lw $k0, -8($sp)
+    li $k1, 97
+    sb $k1, 0($k0)
+    
+# %var2 = call i32 @getchar()
+    li $v0, 12
+    syscall
+    sw $v0, -12($sp)
+    
+# %var3 = trunc i32 %var2 to i8
+    lw $k1, -12($sp)
+    andi $k0, $k1, 255
+    sb $k0, -12($sp)
+    
+# store i8 %var3, i8* %var1
+    lw $k0, -8($sp)
+    lbu $k1, -12($sp)
+    sb $k1, 0($k0)
+    
+# %var4 = alloca i32
+    addi $k0, $sp, -16
+    sw $k0, -20($sp)
+    
+# %var5 = alloca [3 x i32]
+    addi $k0, $sp, -32
+    sw $k0, -36($sp)
+    
+# %var6 = getelementptr inbounds [3 x i32], [3 x i32]* %var5, i32 0, i32 0
+    lw $k0, -36($sp)
+    sw $k0, -40($sp)
+    
+# store i32 1, i32* %var6
+    lw $k0, -40($sp)
+    li $k1, 1
+    sw $k1, 0($k0)
+    
+# %var7 = getelementptr inbounds [3 x i32], [3 x i32]* %var5, i32 0, i32 1
+    lw $k0, -36($sp)
+    addi $k0, $k0, 4
+    sw $k0, -44($sp)
+    
+# store i32 2, i32* %var7
+    lw $k0, -44($sp)
+    li $k1, 2
+    sw $k1, 0($k0)
+    
+# %var8 = getelementptr inbounds [3 x i32], [3 x i32]* %var5, i32 0, i32 2
+    lw $k0, -36($sp)
+    addi $k0, $k0, 8
+    sw $k0, -48($sp)
+    
+# store i32 3, i32* %var8
+    lw $k0, -48($sp)
+    li $k1, 3
+    sw $k1, 0($k0)
+    
+# %var9 = getelementptr inbounds [3 x i32], [3 x i32]* %var5, i32 0, i32 0
+    lw $k0, -36($sp)
+    sw $k0, -52($sp)
+    
+# %val10 = call i32 @g(i32* %var9)
+    sw $sp, -56($sp)
+    sw $ra, -60($sp)
+    lw $k0, -52($sp)
+    sw $k0, -64($sp)
+    addi $sp, $sp, -60
+    jal g
+    lw $ra, 0($sp)
+    lw $sp, 4($sp)
+    sw $v0, -56($sp)
+    
+# store i32 %val10, i32* %var4
+    lw $k0, -20($sp)
+    lw $k1, -56($sp)
+    sw $k1, 0($k0)
+    
+# store i8 97, i8* %var1
+    lw $k0, -8($sp)
+    li $k1, 97
+    sb $k1, 0($k0)
+    
+# br label %Label4
+    j Label4
+
+Label4:    
+# %var13 = load i8, i8* %var1
+    lw $k0, -8($sp)
+    lbu $k0, 0($k0)
+    sb $k0, -60($sp)
+    
+# %var14 = zext i8 %var13 to i32
+    
+# %var15 = srem i32 127, 128
+    li $k0, 127
+    li $k1, 128
+    div $k0, $k1
+    mfhi $k0
+    sw $k0, -64($sp)
+    
+# %var16 = icmp slt i32 %var14, %var15
+    lw $k0, -60($sp)
+    lw $k1, -64($sp)
+    slt $k0, $k0, $k1
+    sw $k0, -68($sp)
+    
+# br i1 %var16, label %Label6, label %Label7
+    lw $k0, -68($sp)
+    bne $k0, $zero, Label6
+    j Label7
+
+Label7:    
+# %var17 = load i32, i32* %var4
+    lw $k0, -20($sp)
+    lw $k0, 0($k0)
+    sw $k0, -72($sp)
+    
+# %var18 = icmp ne i32 %var17, 0
+    lw $k0, -72($sp)
+    li $k1, 0
+    sne $k0, $k0, $k1
+    sw $k0, -76($sp)
+    
+# br i1 %var18, label %Label6, label %Label3
+    lw $k0, -76($sp)
+    bne $k0, $zero, Label6
+    j Label3
+
+Label6:    
+# %var19 = load i8, i8* %var1
+    lw $k0, -8($sp)
+    lbu $k0, 0($k0)
+    sb $k0, -80($sp)
+    
+# %var20 = zext i8 %var19 to i32
+    
+# %var21 = add nsw i32 %var20, 1
+    lw $k0, -80($sp)
+    li $k1, 1
+    addu $k0, $k0, $k1
+    sw $k0, -84($sp)
+    
+# %var22 = trunc i32 %var21 to i8
+    lw $k1, -84($sp)
+    andi $k0, $k1, 255
+    sb $k0, -84($sp)
+    
+# store i8 %var22, i8* %var1
+    lw $k0, -8($sp)
+    lbu $k1, -84($sp)
+    sb $k1, 0($k0)
+    
+# %var24 = load i8, i8* %var1
+    lw $k0, -8($sp)
+    lbu $k0, 0($k0)
+    sb $k0, -88($sp)
+    
+# %var25 = zext i8 %var24 to i32
+    
+# %var26 = icmp eq i32 %var25, 120
+    lw $k0, -88($sp)
+    li $k1, 120
+    seq $k0, $k0, $k1
+    sw $k0, -92($sp)
+    
+# br i1 %var26, label %Label9, label %Label8
+    lw $k0, -92($sp)
+    bne $k0, $zero, Label9
+    j Label8
+
+Label9:    
+# br label %Label3
+    j Label3
+    
+# br label %Label8
+    j Label8
+
+Label8:    
+# br label %Label5
+    j Label5
+
+Label5:    
+# %var27 = load i8, i8* %var1
+    lw $k0, -8($sp)
+    lbu $k0, 0($k0)
+    sb $k0, -96($sp)
+    
+# %var28 = zext i8 %var27 to i32
+    
+# %var29 = add nsw i32 %var28, 1
+    lw $k0, -96($sp)
+    li $k1, 1
+    addu $k0, $k0, $k1
+    sw $k0, -100($sp)
+    
+# %var30 = trunc i32 %var29 to i8
+    lw $k1, -100($sp)
+    andi $k0, $k1, 255
+    sb $k0, -100($sp)
+    
+# store i8 %var30, i8* %var1
+    lw $k0, -8($sp)
+    lbu $k1, -100($sp)
+    sb $k1, 0($k0)
+    
+# br label %Label4
+    j Label4
+
+Label3:    
+# ret i32 0
+    li $v0, 0
+    jr $ra
+
+end:

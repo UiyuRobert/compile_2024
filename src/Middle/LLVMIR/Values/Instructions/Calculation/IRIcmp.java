@@ -78,7 +78,7 @@ public class IRIcmp extends IRInstruction {
         MipsBuilder builder = MipsBuilder.builder();
         Register resultReg = Register.K0;
         Register leftReg = Register.K0;
-        Register rightReg = Register.K0;
+        Register rightReg = Register.K1;
 
         // 如果两个都为常数，直接处理
         if (operand1 instanceof IRConstant && operand2 instanceof IRConstant) {
@@ -96,7 +96,7 @@ public class IRIcmp extends IRInstruction {
 
             // 处理 operand2
             if (operand2 instanceof IRConstant) {
-                new LiAsm(leftReg, ((IRConstant) operand2).getValue());
+                new LiAsm(rightReg, ((IRConstant) operand2).getValue());
             } else {
                 /* TODO */
                 int offset = builder.getVarOffsetInStack(operand2);
@@ -112,13 +112,12 @@ public class IRIcmp extends IRInstruction {
                 case Slt: new CmpAsm(CmpAsm.Op.SLT, resultReg, leftReg, rightReg); break;
                 case Sle: new CmpAsm(CmpAsm.Op.SLE, resultReg, leftReg, rightReg); break;
             }
-
-            // 存值, I1 都用 4byte 存
-            builder.alloc4BitsInStack();
-            int offset = builder.getStackOffset();
-            builder.mapVarToStackOffset(this, offset);
-            new MemAsm(MemAsm.Op.SW, resultReg, Register.SP, offset);
         }
+        // 存值, I1 都用 4byte 存
+        builder.alloc4BitsInStack();
+        int offset = builder.getStackOffset();
+        builder.mapVarToStackOffset(this, offset);
+        new MemAsm(MemAsm.Op.SW, resultReg, Register.SP, offset);
     }
 
     private int constantCmp() {

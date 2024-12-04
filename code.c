@@ -1,63 +1,18 @@
-void main() {
-	Z();
-}
+// Global declarations
+#include<stdio.h>
+const int constIntArray[3] = {10, 20, 30};       // Constant integer array
+const char constCharArray[5] = {'A', 'B', 'C', 'D', 'E'}; // Constant character array
+const char constCharArray2[5] = "abc"; // Constant character array
+int intArray[5];                                 // Integer array
+char charArray[5];                               // Character array
 
-void Z() {
-	sys = getnext();
-	if (sys == 'c') {
-		A(sys);
-		sys = getnext();
-		if (sys == 'c') {
-			sys = getnext();
-			B(sys);
-			sys = getnext();
-			if (sys == '$') success;
-			else error;
-		}
-		else error;
-	}
-	else if (sys == 'a') {
-		B(sys);
-		sys = getnext();
-		if (sys == 'd') {
-			success;
-		}
-		else error;
-	}
-	else error;
-}
+int main() {
 
-void A(sys) {
-	if (sys == c) {
-		sys = getnext();
-		A'(sys);
-	}
-	else error;
-}
+    // Calculate sum of ASCII codes
+    int asciiSum = constCharArray2[0] + constCharArray2[1] + constCharArray2[2] + constCharArray2[3] + constCharArray2[4];
+    char charSum = constCharArray2[0] + constCharArray2[1] + constCharArray2[2] + constCharArray2[3] + constCharArray2[4];
 
-void B(sys) {
-	if (sys == a) {
-		sys = getnext();
-		if (sys == a) B(sys);
-		else {
-			reverse();
-			return;
-		}
-	}
-	else {
-		reverse();
-		return;
-	}
-}
-void A'(sys) {
-	if (sys == 'a') {
-		sys = getnext();
-		B(sys);
-		sys = getnext();
-		A'(sys);
-	}
-	else {
-		reverse();
-		return;
-	}
+    printf("Sum of ASCII codes2: %d %c\n", asciiSum, charSum);
+
+    return 0;
 }

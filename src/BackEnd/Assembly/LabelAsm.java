@@ -9,6 +9,6 @@ public class LabelAsm extends Asm {
 
     @Override
     public String toString() {
-        return labelName + ":\n";
+        return "\n" + labelName + ":";
     }
 }

@@ -48,7 +48,7 @@ public class IRZext extends IRInstruction {
             builder.mapVarToStackOffset(this, builder.getVarOffsetInStack(toExt));
         } else if (toExt.getType() == IRIntType.I8()) {
             // I8 在栈中都用 4Byte 来存，所以可以直接映射
-            new CommentAsm("I8 都用 4Byte 来存，不需要转换\n");
+
             builder.mapVarToStackOffset(this, builder.getVarOffsetInStack(toExt));
         }
     }

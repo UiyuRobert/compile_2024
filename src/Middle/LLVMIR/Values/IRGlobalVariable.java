@@ -1,6 +1,7 @@
 package Middle.LLVMIR.Values;
 
 import BackEnd.Assembly.GlobalVarAsm;
+import BackEnd.Assembly.LaAsm;
 import BackEnd.Assembly.LiAsm;
 import BackEnd.Assembly.MemAsm;
 import BackEnd.Register;
@@ -40,7 +41,7 @@ public class IRGlobalVariable extends IRValue {
     private String content;
 
     public IRGlobalVariable(IRType type, String name, boolean isConst) {
-        super(new IRPtrType(type), "@" + name);
+        super(new IRPtrType(type), "@GL" + name);
         elementTy = type;
         this.isConst = isConst;
         inits = new ArrayList<>(); // 为空说明非全局且无初始值
@@ -160,13 +161,16 @@ public class IRGlobalVariable extends IRValue {
 
     private void processArray(int elementSize, int arraySize) {
         String name = getMipsName();
-        new GlobalVarAsm.Space(name, arraySize * elementSize);
+        new GlobalVarAsm.Space(name, arraySize * elementSize, elementSize == 4);
         if (isNeedInitial()) {
             int offset = 0;
             for (Integer init : inits) {
                 if (init == 0) continue;
                 new LiAsm(Register.K0, init);
-                new MemAsm(MemAsm.Op.SW, Register.K0, name, offset);
+                if (elementSize == 1)
+                    new MemAsm(MemAsm.Op.SB, Register.K0, name, offset);
+                else
+                    new MemAsm(MemAsm.Op.SW, Register.K0, name, offset);
                 offset += elementSize;
             }
         }

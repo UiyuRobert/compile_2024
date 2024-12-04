@@ -111,8 +111,9 @@ public class IRGetElePtr extends IRInstruction {
         Register offsetReg = Register.K1;
         MipsBuilder builder = MipsBuilder.builder();
 
+        boolean isGlobalVariable = curStruct instanceof IRGlobalVariable;
         // 获取数组基地址
-        if (curStruct instanceof IRGlobalVariable) {
+        if (isGlobalVariable) {
             // 如果是全局变量
             new LaAsm(baseReg, ((IRGlobalVariable) curStruct).getMipsName());
         } else {
@@ -123,12 +124,14 @@ public class IRGetElePtr extends IRInstruction {
         }
 
         IRType curRank = ((IRPtrType)structVal.getType()).getPointed(); // 当前解析到的层
+
         IRValue curIndex = index.get(0);
 
         // 获取偏移量
         if (index.size() > 1) { // 是数组
             curIndex = index.get(index.size() - 1); // 有实际影响的 index
-            curRank = ((IRArrayType) curRank).getElementType();
+            curRank = isGlobalVariable? ((IRArrayType) curRank).getElementType()
+                    : IRIntType.I32(); // 全局char用1byte存，但是栈中数据是4byte
         }
 
         // 如果 index 为 0, 那么 基地址 即为所求, 也就是 baseReg = resultReg

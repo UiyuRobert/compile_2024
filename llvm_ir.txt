@@ -4,26 +4,90 @@ declare void @putint(i32)
 declare void @putchar(i32)
 declare void @putstr(i8*)
 
-@index = dso_local global i32 1
 
 
+define dso_local i32 @g(i32* %var1) {
+
+entry_g:
+	%var2 = alloca i32*
+	store i32* %var1, i32** %var2
+	%var3 = load i32*, i32** %var2
+	%var4 = getelementptr inbounds i32, i32* %var3, i32 0
+	%var5 = load i32, i32* %var4
+	%var6 = load i32*, i32** %var2
+	%var7 = getelementptr inbounds i32, i32* %var6, i32 1
+	%var8 = load i32, i32* %var7
+	%var9 = load i32*, i32** %var2
+	%var10 = getelementptr inbounds i32, i32* %var9, i32 0
+	%var11 = load i32, i32* %var10
+	%var12 = sub nsw i32 0, %var11
+	%var13 = add nsw i32 %var8, %var12
+	%var14 = load i32*, i32** %var2
+	%var15 = getelementptr inbounds i32, i32* %var14, i32 %var13
+	%var16 = load i32, i32* %var15
+	%var17 = add nsw i32 %var5, %var16
+	ret i32 %var17
+}
 define dso_local i32 @main() {
-; ************************block start ****************************
 
 entry_main:
-	%var1 = mul nsw i32 9, 9
-	%var2 = alloca i32
-	store i32 %var1, i32* %var2
-	%var3 = alloca [4 x i32]
-	%var4 = getelementptr inbounds [4 x i32], [4 x i32]* %var3, i32 0, i32 0
-	store i32 3, i32* %var4
-	%var5 = getelementptr inbounds [4 x i32], [4 x i32]* %var3, i32 0, i32 1
-	store i32 5, i32* %var5
-	%var6 = load i32, i32* @index
-	%var7 = getelementptr inbounds [4 x i32], [4 x i32]* %var3, i32 0, i32 %var6
-	%var8 = load i32, i32* %var7
-	store i32 %var8, i32* %var2
-	store i32 0, i32* @index
+	%var1 = alloca i8
+	store i8 97, i8* %var1
+	%var2 = call i32 @getchar()
+	%var3 = trunc i32 %var2 to i8
+	store i8 %var3, i8* %var1
+	%var4 = alloca i32
+	%var5 = alloca [3 x i32]
+	%var6 = getelementptr inbounds [3 x i32], [3 x i32]* %var5, i32 0, i32 0
+	store i32 1, i32* %var6
+	%var7 = getelementptr inbounds [3 x i32], [3 x i32]* %var5, i32 0, i32 1
+	store i32 2, i32* %var7
+	%var8 = getelementptr inbounds [3 x i32], [3 x i32]* %var5, i32 0, i32 2
+	store i32 3, i32* %var8
+	%var9 = getelementptr inbounds [3 x i32], [3 x i32]* %var5, i32 0, i32 0
+	%val10 = call i32 @g(i32* %var9)
+	store i32 %val10, i32* %var4
+	store i8 97, i8* %var1
+	br label %Label4
+
+Label4:
+	%var13 = load i8, i8* %var1
+	%var14 = zext i8 %var13 to i32
+	%var15 = srem i32 127, 128
+	%var16 = icmp slt i32 %var14, %var15
+	br i1 %var16, label %Label6, label %Label7
+
+Label7:
+	%var17 = load i32, i32* %var4
+	%var18 = icmp ne i32 %var17, 0
+	br i1 %var18, label %Label6, label %Label3
+
+Label6:
+	%var19 = load i8, i8* %var1
+	%var20 = zext i8 %var19 to i32
+	%var21 = add nsw i32 %var20, 1
+	%var22 = trunc i32 %var21 to i8
+	store i8 %var22, i8* %var1
+	%var24 = load i8, i8* %var1
+	%var25 = zext i8 %var24 to i32
+	%var26 = icmp eq i32 %var25, 120
+	br i1 %var26, label %Label9, label %Label8
+
+Label9:
+	br label %Label3
+	br label %Label8
+
+Label8:
+	br label %Label5
+
+Label5:
+	%var27 = load i8, i8* %var1
+	%var28 = zext i8 %var27 to i32
+	%var29 = add nsw i32 %var28, 1
+	%var30 = trunc i32 %var29 to i8
+	store i8 %var30, i8* %var1
+	br label %Label4
+
+Label3:
 	ret i32 0
-; *************************** block end *************************
 }

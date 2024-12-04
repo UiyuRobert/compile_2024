@@ -23,7 +23,7 @@ public class IRIntType implements IRType {
     public static IRIntType I1() { return I1; }
 
     @Override
-    public int getByteSize() { return 4; }
+    public int getByteSize() { return bits / 8; }
 
     @Override
     public String toString() {

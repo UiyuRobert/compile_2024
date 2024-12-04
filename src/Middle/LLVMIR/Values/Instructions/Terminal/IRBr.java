@@ -70,12 +70,18 @@ public class IRBr extends IRInstruction {
         MipsBuilder builder = MipsBuilder.builder();
         Register condReg = Register.K0; // 放 I1 条件
 
-        int condOffset = builder.getVarOffsetInStack(cond);
-        new MemAsm(MemAsm.Op.LW, condReg, Register.SP, condOffset);
+        if (dest == null) {
+            // br i1 <cond>, label <iftrue>, label <iffalse>
+            int condOffset = builder.getVarOffsetInStack(cond);
+            new MemAsm(MemAsm.Op.LW, condReg, Register.SP, condOffset);
 
-        // 如果 cond != 0 则跳转到 trueLabel
-        new BranchAsm(BranchAsm.Op.BNE, condReg, Register.ZERO, trueLabel.getMipsName());
-        // 否则跳转到 falseLabel
-        new JumpAsm(JumpAsm.Op.J, falseLabel.getMipsName());
+            // 如果 cond != 0 则跳转到 trueLabel
+            new BranchAsm(BranchAsm.Op.BNE, condReg, Register.ZERO, trueLabel.getMipsName());
+            // 否则跳转到 falseLabel
+            new JumpAsm(JumpAsm.Op.J, falseLabel.getMipsName());
+        } else {
+            // br label <dest>
+            new JumpAsm(JumpAsm.Op.J, dest.getMipsName());
+        }
     }
 }

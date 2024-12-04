@@ -57,7 +57,7 @@ public class IRLoad extends IRInstruction {
         // 从栈中取值 load
         boolean isChar = this.getType() == IRIntType.I8();
 
-        if (isChar) new MemAsm(MemAsm.Op.LB, resultReg, pointerReg, 0);
+        if (isChar) new MemAsm(MemAsm.Op.LBU, resultReg, pointerReg, 0);
         else new MemAsm(MemAsm.Op.LW, resultReg, pointerReg, 0);
 
         // 将值存入栈中
