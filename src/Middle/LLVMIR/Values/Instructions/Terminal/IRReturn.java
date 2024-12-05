@@ -51,13 +51,9 @@ public class IRReturn extends IRInstruction {
             if (retVal instanceof IRConstant) {
                 new LiAsm(Register.V0, ((IRConstant) retVal).getValue());
             } else {
-                /* TODO */
-                boolean isChar = retVal.getType() == IRIntType.I8();
                 int offset = builder.getVarOffsetInStack(retVal);
-                if (isChar)
-                    new MemAsm(MemAsm.Op.LBU, Register.V0, Register.SP, offset);
-                else
-                    new MemAsm(MemAsm.Op.LW, Register.V0, Register.SP, offset);
+
+                new MemAsm(MemAsm.Op.LW, Register.V0, Register.SP, offset);
             }
         }
         // jr $ra

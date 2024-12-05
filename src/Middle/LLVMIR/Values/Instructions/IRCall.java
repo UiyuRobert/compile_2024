@@ -150,7 +150,7 @@ public class IRCall extends IRInstruction {
                 new LiAsm(Register.A0, value);
             } else {
                 int offset = builder.getVarOffsetInStack(speArg);
-                new MemAsm(MemAsm.Op.LBU, Register.A0, Register.SP, offset);
+                new MemAsm(MemAsm.Op.LW, Register.A0, Register.SP, offset);
             }
         } else {
             // putstr()

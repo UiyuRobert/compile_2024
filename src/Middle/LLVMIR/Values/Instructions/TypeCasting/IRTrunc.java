@@ -55,10 +55,7 @@ public class IRTrunc extends IRInstruction {
             } else {
                 // 先加载出来，再判断是否为 0
                 int offset = builder.getVarOffsetInStack(toTrunc);
-                if (toTrunc.getType() == IRIntType.I8())
-                    new MemAsm(MemAsm.Op.LBU, srcReg, Register.SP, offset);
-                else
-                    new MemAsm(MemAsm.Op.LW, srcReg, Register.SP, offset);
+                new MemAsm(MemAsm.Op.LW, srcReg, Register.SP, offset);
                 new CmpAsm(CmpAsm.Op.SNE, resultReg, Register.ZERO, srcReg);
                 new MemAsm(MemAsm.Op.SW, resultReg, Register.SP, offset);
                 builder.mapVarToStackOffset(this, offset);
@@ -71,13 +68,13 @@ public class IRTrunc extends IRInstruction {
                 builder.alloc4BitsInStack();
                 int offset = builder.getStackOffset();
                 builder.mapVarToStackOffset(this, offset);
-                new MemAsm(MemAsm.Op.SB, resultReg, Register.SP, offset);
+                new MemAsm(MemAsm.Op.SW, resultReg, Register.SP, offset);
             } else {
                 int offset = builder.getVarOffsetInStack(toTrunc);
                 new MemAsm(MemAsm.Op.LW, srcReg, Register.SP, offset);
                 // 截断高位，只保留后8位
                 new AluAsm(AluAsm.Op.ANDI, resultReg, srcReg, 0xff);
-                new MemAsm(MemAsm.Op.SB, resultReg, Register.SP, offset);
+                new MemAsm(MemAsm.Op.SW, resultReg, Register.SP, offset);
                 builder.mapVarToStackOffset(this, offset);
             }
         } else {

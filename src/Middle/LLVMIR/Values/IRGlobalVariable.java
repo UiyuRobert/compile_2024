@@ -136,7 +136,8 @@ public class IRGlobalVariable extends IRValue {
         } else if (elementTy == IRIntType.I8()) {
             String name = getMipsName();
             int initVal = inits.isEmpty() ? 0 : inits.get(0);
-            new GlobalVarAsm.Byte(name, initVal);
+            new GlobalVarAsm.Word(name, initVal);
+            // new GlobalVarAsm.Byte(name, initVal);
         } else if (elementTy == IRIntType.I32()) {
             String name = getMipsName();
             int initVal = inits.isEmpty() ? 0 : inits.get(0);
@@ -146,7 +147,7 @@ public class IRGlobalVariable extends IRValue {
             if (irType.getElementType() == IRIntType.I32())
                 processArray(4, irType.getSize());
             else if (irType.getElementType() == IRIntType.I8())
-                processArray(1, irType.getSize());
+                processArray(4, irType.getSize());
             else {
                 System.out.println("WTF???? GL ARRAY TO ASM");
             }

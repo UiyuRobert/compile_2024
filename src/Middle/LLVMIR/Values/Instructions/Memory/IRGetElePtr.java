@@ -123,15 +123,11 @@ public class IRGetElePtr extends IRInstruction {
             new MemAsm(MemAsm.Op.LW, baseReg, Register.SP, offset);
         }
 
-        IRType curRank = ((IRPtrType)structVal.getType()).getPointed(); // 当前解析到的层
-
         IRValue curIndex = index.get(0);
 
         // 获取偏移量
         if (index.size() > 1) { // 是数组
             curIndex = index.get(index.size() - 1); // 有实际影响的 index
-            curRank = isGlobalVariable? ((IRArrayType) curRank).getElementType()
-                    : IRIntType.I32(); // 全局char用1byte存，但是栈中数据是4byte
         }
 
         // 如果 index 为 0, 那么 基地址 即为所求, 也就是 baseReg = resultReg
@@ -139,19 +135,16 @@ public class IRGetElePtr extends IRInstruction {
             // 常数
             if (((IRConstant) curIndex).getValue() != 0)
                 new AluAsm(AluAsm.Op.ADDI, resultReg, baseReg,
-                    ((IRConstant) curIndex).getValue() * curRank.getByteSize());
+                    ((IRConstant) curIndex).getValue() * 4);
         } else {
             // 变量
             /* TODO */ // 可能为函数参数
             int stackOffset = builder.getVarOffsetInStack(curIndex);
             new MemAsm(MemAsm.Op.LW, offsetReg, Register.SP, stackOffset);
 
-            if (curRank == IRIntType.I32()) { // 是 int 则 *4
-                new AluAsm(AluAsm.Op.SLL, Register.K1, offsetReg, 2);
-                // 基地址 + 偏移量 -> 结果
-                new AluAsm(AluAsm.Op.ADDU, resultReg, baseReg, Register.K1);
-            } else // 是 char 则直接使用
-                new AluAsm(AluAsm.Op.ADDU, resultReg, baseReg, offsetReg);
+            new AluAsm(AluAsm.Op.SLL, Register.K1, offsetReg, 2);
+            // 基地址 + 偏移量 -> 结果
+            new AluAsm(AluAsm.Op.ADDU, resultReg, baseReg, Register.K1);
         }
 
         // 将结果存到栈里

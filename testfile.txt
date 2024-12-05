@@ -1,21 +1,17 @@
-int g(int arr[]) {
-    return arr[0]+arr[arr[1]+-arr[0]];
+void test(char a[]){
+	a[2]='l';
+	printf("%d\n",a[3]);
 }
 
-int main() {
-    char c = 'a';
-    c = getchar();
-    int i;
-    int array[3] = {1, 2, 3};
-    i = g(array);
 
-    for (c='a'; c < (127 % 128) || i != 0; c = c+1) {
-        c=c+1;
-        if (c=='x'){
-            break;
-        }
-    }
-
-
+char fun(char a[]){
+	test(a);
+    return 'a';
+}
+int main()
+{
+    char a[10]="abcdefg";
+    fun(a);
+   printf("%c\n",a[2]);
     return 0;
 }
