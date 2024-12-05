@@ -166,12 +166,10 @@ public class IRGlobalVariable extends IRValue {
         if (isNeedInitial()) {
             int offset = 0;
             for (Integer init : inits) {
-                if (init == 0) continue;
-                new LiAsm(Register.K0, init);
-                if (elementSize == 1)
-                    new MemAsm(MemAsm.Op.SB, Register.K0, name, offset);
-                else
+                if (init != 0) {
+                    new LiAsm(Register.K0, init);
                     new MemAsm(MemAsm.Op.SW, Register.K0, name, offset);
+                }
                 offset += elementSize;
             }
         }

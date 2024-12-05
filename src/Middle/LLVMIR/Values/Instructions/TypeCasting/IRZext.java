@@ -43,12 +43,11 @@ public class IRZext extends IRInstruction {
 
         /*TODO*/ // 目前只考虑要转换的值在栈中
         if (toExt.getType() == IRIntType.I1()) {
-            new CommentAsm("I1 都用 4Byte 来存，不需要转换\n");
+            // new CommentAsm("I1 都用 4Byte 来存，不需要转换\n");
             // 把 Zext 后的结果也映射到 toExt 上
             builder.mapVarToStackOffset(this, builder.getVarOffsetInStack(toExt));
         } else if (toExt.getType() == IRIntType.I8()) {
             // I8 在栈中都用 4Byte 来存，所以可以直接映射
-
             builder.mapVarToStackOffset(this, builder.getVarOffsetInStack(toExt));
         }
     }

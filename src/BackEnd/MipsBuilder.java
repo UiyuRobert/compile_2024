@@ -69,7 +69,7 @@ public class MipsBuilder {
         for (Asm asm : this.dataSegment)
             result.append(asm.toString());
 
-        result.append("\n.text\n.globl main\n");
+        result.append("\n\n.text\n");
 
 
         for (Asm asm : this.textSegment)

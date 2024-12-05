@@ -46,7 +46,7 @@ public class GlobalVarAsm extends Asm {
 
         @Override
         public String toString() {
-            return name + ": .word " + value + "\n";
+            return ".align 2\n" + name + ": .word " + value + "\n";
         }
     }
 

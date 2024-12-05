@@ -49,9 +49,8 @@ public class IRLoad extends IRInstruction {
         if (ptr instanceof IRGlobalVariable) {
             // 是全局变量
             new LaAsm(pointerReg, ((IRGlobalVariable) ptr).getMipsName());
-
         } else {
-            /* TODO */ // 函数参数
+
             int offset = builder.getVarOffsetInStack(ptr);
             new MemAsm(MemAsm.Op.LW, pointerReg, Register.SP, offset);
         }

@@ -83,6 +83,7 @@ public class Compiler {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+        System.out.println("Error !");
     }
 
     private static void normalOutput() {
@@ -115,6 +116,7 @@ public class Compiler {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+        System.out.println("Success !");
     }
 
     private static String sortAndGen(List<String> arr) {

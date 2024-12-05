@@ -138,7 +138,6 @@ public class IRGetElePtr extends IRInstruction {
                     ((IRConstant) curIndex).getValue() * 4);
         } else {
             // 变量
-            /* TODO */ // 可能为函数参数
             int stackOffset = builder.getVarOffsetInStack(curIndex);
             new MemAsm(MemAsm.Op.LW, offsetReg, Register.SP, stackOffset);
 
