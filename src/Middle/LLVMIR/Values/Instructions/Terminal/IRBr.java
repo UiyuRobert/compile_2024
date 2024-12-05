@@ -10,6 +10,7 @@ import Middle.LLVMIR.IRTypes.IRIntType;
 import Middle.LLVMIR.IRTypes.IRVoidType;
 import Middle.LLVMIR.IRUse;
 import Middle.LLVMIR.IRValue;
+import Middle.LLVMIR.Values.IRBasicBlock;
 import Middle.LLVMIR.Values.Instructions.IRInstrType;
 import Middle.LLVMIR.Values.Instructions.IRInstruction;
 import Middle.LLVMIR.Values.Instructions.IRLabel;
@@ -51,6 +52,17 @@ public class IRBr extends IRInstruction {
         IRUse use = new IRUse(this, dest, 0);
         this.addUse(use);
         dest.addUse(use);
+    }
+
+    public boolean noCondition() { return dest != null; }
+
+    public IRBasicBlock getTargetBlock(String kind) {
+        if (kind.equals("true"))
+            return trueLabel.getBelongsTo();
+        else if (kind.equals("false"))
+            return falseLabel.getBelongsTo();
+        else
+            return dest.getBelongsTo();
     }
 
     public String getIR() {

@@ -15,6 +15,7 @@ import ErrorHandling.ErrorHandling;
 import Frontend.SyntaxAnalysis.Nodes.CompUnitNode;
 import Frontend.SyntaxAnalysis.Parser;
 import Middle.LLVMIR.IRModule;
+import Middle.Optimize.DataFlowBuilder;
 import Middle.Visitor;
 
 import static Middle.Symbols.SymbolTable.record;
@@ -29,7 +30,7 @@ public class Compiler {
     private static final String MIPS = "mips.txt";
     private static String mipsResult = null;
 
-    private static int option = 3;
+    private static int option = 2;
 
     public static void main(String[] args) throws FileNotFoundException {
         /*--参数设置--*/
@@ -53,6 +54,10 @@ public class Compiler {
         module.toAssembly();
         mipsResult = MipsBuilder.builder().getResult();
         //System.out.println(mipsResult);
+
+        DataFlowBuilder dfBuilder = new DataFlowBuilder(module);
+        dfBuilder.run();
+
         /*--判断是否有错误--*/
         if (ErrorHandling.isErrorOccurred()) {
             errorOutput();

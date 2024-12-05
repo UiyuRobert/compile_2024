@@ -9,16 +9,34 @@ import Middle.LLVMIR.IRValue;
 import Middle.LLVMIR.Values.Instructions.IRLabel;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class IRFunction extends IRValue {
     private int counter;
     private ArrayList<IRBasicBlock> blocks; // 函数内部基本块集合
 
+    // 前驱 CFG
+    private HashMap<IRBasicBlock, ArrayList<IRBasicBlock>> preGraph;
+    // 后继 CFG
+    private HashMap<IRBasicBlock, ArrayList<IRBasicBlock>> sucGraph;
+
     public IRFunction(IRType type, String name) {
         super(type, name); //
         counter = 1;
         blocks = new ArrayList<>();
+        preGraph = null;
+        sucGraph = null;
     }
+
+    public void setPreGraph(HashMap<IRBasicBlock, ArrayList<IRBasicBlock>> preGraph) {
+        this.preGraph = preGraph;
+    }
+
+    public void setSucGraph(HashMap<IRBasicBlock, ArrayList<IRBasicBlock>> sucGraph) {
+        this.sucGraph = sucGraph;
+    }
+
+    public IRBasicBlock getEntryBlock() { return blocks.get(0); }
 
     /* 计算变量的下标 */
     public int getCounter() {
@@ -28,6 +46,8 @@ public class IRFunction extends IRValue {
     public void addBlock(IRBasicBlock block) {
         blocks.add(block);
     }
+
+    public ArrayList<IRBasicBlock> getBlocks() { return blocks; }
 
     public IRType getReturnType() {
         return ((IRFuncType)getType()).getReturnType();

@@ -185,8 +185,9 @@ public class Visitor {
         curTable = new SymbolTable(curTable, ++domainNumber);
         IRFuncType funcType = new IRFuncType(IRIntType.I32());
         irFuncEnv = new IRFunction(funcType, "@main");
-        curBlock = new IRBasicBlock("");
+        curBlock = new IRBasicBlock(IRBasicBlock.getBlockName());
         IRLabel label = new IRLabel();
+        label.setBelongsTo(curBlock);
         label.setEntry("main");
         curBlock.addInstruction(label);
         visitFuncBlock(mainFucDefNode.getBlock(), Symbol.Type.IntFunc);
@@ -247,8 +248,9 @@ public class Visitor {
         switch (kind) {
             case IFSTMT: {
                 IRLabel afterIf = new IRLabel();
-                IRBasicBlock block = new IRBasicBlock("");
+                IRBasicBlock block = new IRBasicBlock(IRBasicBlock.getBlockName());
                 block.addInstruction(afterIf);
+                afterIf.setBelongsTo(block);
                 // 进去前建好 if 语句之后的 block
                 visitIfStmt(stmt, afterIf);
                 // 处理完再更换 block
@@ -258,8 +260,9 @@ public class Visitor {
             case EXPSTMT: visitExpStmt(stmt); break;
             case FORSTMT: {
                 IRLabel afterFor = new IRLabel();
-                IRBasicBlock block = new IRBasicBlock("");
+                IRBasicBlock block = new IRBasicBlock(IRBasicBlock.getBlockName());
                 block.addInstruction(afterFor);
+                afterFor.setBelongsTo(block);
 
                 visitForStmt(stmt, afterFor);
                 forStack.pop();
@@ -280,13 +283,15 @@ public class Visitor {
         boolean hasElse = ifStmt.getElseStmt() != null;
 
         IRLabel ifTrue = new IRLabel();
-        IRBasicBlock ifTrueBlock = new IRBasicBlock("if-true");
+        IRBasicBlock ifTrueBlock = new IRBasicBlock(IRBasicBlock.getBlockName());
         ifTrueBlock.addInstruction(ifTrue);
+        ifTrue.setBelongsTo(ifTrueBlock);
 
         if (hasElse) {
             IRLabel elseL = new IRLabel();
-            IRBasicBlock elseBlock = new IRBasicBlock("else");
+            IRBasicBlock elseBlock = new IRBasicBlock(IRBasicBlock.getBlockName());
             elseBlock.addInstruction(elseL);
+            elseL.setBelongsTo(elseBlock);
 
             visitCond(ifStmt.getIfCond(), ifTrue, elseL);
             irFuncEnv.addBlock(curBlock);
@@ -327,17 +332,19 @@ public class Visitor {
         curBlock.addInstruction(br); // 解决入口问题
         irFuncEnv.addBlock(curBlock);
 
-        IRBasicBlock loopCond = new IRBasicBlock("loop-cond");
+        IRBasicBlock loopCond = new IRBasicBlock(IRBasicBlock.getBlockName());
         loopCond.addInstruction(loopStart);
+        loopStart.setBelongsTo(loopCond);
         curBlock = loopCond;
 
         IRLabel toBr = new IRLabel(); // 提前生成标签，方便 continue
         forStack.push(new AbstractMap.SimpleEntry<>(afterFor, toBr));
 
         if (forStmt.hasCondInFor()) {
-            IRBasicBlock loopBody = new IRBasicBlock("loop-body");
+            IRBasicBlock loopBody = new IRBasicBlock(IRBasicBlock.getBlockName());
             IRLabel body = new IRLabel();
             loopBody.addInstruction(body);
+            body.setBelongsTo(loopBody);
 
             visitCond(forStmt.getCondInFor(), body, afterFor);
             irFuncEnv.addBlock(curBlock);
@@ -349,8 +356,9 @@ public class Visitor {
         curBlock.addInstruction(br);
         irFuncEnv.addBlock(curBlock);
 
-        curBlock = new IRBasicBlock("loop-end");
+        curBlock = new IRBasicBlock(IRBasicBlock.getBlockName());
         curBlock.addInstruction(toBr);
+        toBr.setBelongsTo(curBlock);
 
         if (forStmt.hasInFor2()) visitInForStmt(forStmt.getInFor2());
 
@@ -749,10 +757,11 @@ public class Visitor {
         }
         curTable = new SymbolTable(curTable, ++domainNumber);
         irFuncEnv = new IRFunction(IRVoidType.Void(), "@" + entry.getKey());
-        curBlock = new IRBasicBlock("");
+        curBlock = new IRBasicBlock(IRBasicBlock.getBlockName());
         IRLabel label = new IRLabel();
         label.setEntry(entry.getKey());
         curBlock.addInstruction(label);
+        label.setBelongsTo(curBlock);
         IRFuncType funcType = new IRFuncType(calIRFuncType(funcDef.getFuncTypeNode()));
         if (funcDef.hasParams()) {
             List<Symbol> params = visitFuncFParams(funcDef.getFuncFParams());
@@ -887,9 +896,11 @@ public class Visitor {
                 // 分配 size - 1 个标签和基本块
                 IRLabel label = new IRLabel();
                 labels.add(label);
-                IRBasicBlock block = new IRBasicBlock("");
+                IRBasicBlock block = new IRBasicBlock(IRBasicBlock.getBlockName());
                 block.addInstruction(label);
                 blocks.add(block);
+
+                label.setBelongsTo(block);
             }
             labels.add(falseLabel);
             for (int i = 0; i < size; i++) {
@@ -915,8 +926,9 @@ public class Visitor {
             for (int i = 0; i < size - 1; i++) {
                 IRLabel label = new IRLabel();
                 labels.add(label);
-                IRBasicBlock block = new IRBasicBlock("");
+                IRBasicBlock block = new IRBasicBlock(IRBasicBlock.getBlockName());
                 block.addInstruction(label);
+                label.setBelongsTo(block); // 设置对应的基本块
                 blocks.add(block);
             }
             labels.add(trueLabel);

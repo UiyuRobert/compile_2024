@@ -27,6 +27,8 @@ public class IRModule{
         functions.add(function);
     }
 
+    public ArrayList<IRFunction> getFunctions() { return functions; }
+
     public void addStrPrivate(IRGlobalVariable strVar) { strPrivate.add(strVar); }
 
     public String getIR() {
