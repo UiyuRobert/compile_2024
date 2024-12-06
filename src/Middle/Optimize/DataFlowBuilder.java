@@ -6,8 +6,7 @@ import Middle.LLVMIR.Values.IRFunction;
 import Middle.LLVMIR.Values.Instructions.IRInstruction;
 import Middle.LLVMIR.Values.Instructions.Terminal.IRBr;
 
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.*;
 
 public class DataFlowBuilder {
     private IRModule irModule;
@@ -19,8 +18,11 @@ public class DataFlowBuilder {
     private HashMap<IRBasicBlock, ArrayList<IRBasicBlock>> sucGraph;
 
     // 支配树、支配关系
-    int time; // DFS遍历的计时器，用于分配DFS编号
-    ArrayList<IRBasicBlock> dfsList;  // DFS遍历后的节点列表，按DFS顺序排列
+    private int time; // DFS遍历的计时器，用于分配DFS编号
+    private ArrayList<IRBasicBlock> dfsList;  // DFS遍历后的节点列表，按DFS顺序排列
+    private HashMap<IRBasicBlock, IRBasicBlock> idomGraph; // 直接支配者，block-> idomBlock
+    private HashMap<IRBasicBlock, ArrayList<IRBasicBlock>> dominateGraph; // block 支配的其它 block
+    private HashMap<IRBasicBlock, LinkedHashSet<IRBasicBlock>> dfGraph; // 支配边界
 
     public DataFlowBuilder(IRModule irModule) {
         this.irModule = irModule;
@@ -28,26 +30,40 @@ public class DataFlowBuilder {
         sucGraph = null;
         time = 0;
         dfsList = null;
+        idomGraph = null;
+        dfGraph = null;
     }
 
     public void run() {
         for (IRFunction function : irModule.getFunctions()) {
-            initialize(function);
-            getCFG(function);
-            buildDominatorTree(function.getEntryBlock());
-            printDominatorTree(function);
+            initialize(function); // 初始化
+            getCFG(function); // 构建流图
+            printCFG(function);
+            buildDominator(function); // 构建支配树
+            printDominator(function); // 检查支配树
+
+
         }
     }
 
     private void initialize(IRFunction function) {
         preGraph = new HashMap<>();
         sucGraph = new HashMap<>();
+        idomGraph = new LinkedHashMap<>();
+        dominateGraph = new HashMap<>();
+        time = 0;
+        dfsList = new ArrayList<>();
+        dfGraph = new HashMap<>();
+
         for (IRBasicBlock block : function.getBlocks()) {
             preGraph.put(block, new ArrayList<>());
             sucGraph.put(block, new ArrayList<>());
+            idomGraph.put(block, null);
+            dominateGraph.put(block, new ArrayList<>());
+            dfGraph.put(block, new LinkedHashSet<>());
         }
-        time = 0;
-        dfsList = new ArrayList<>();
+
+
     }
 
     private void getCFG(IRFunction function) {
@@ -187,25 +203,67 @@ public class DataFlowBuilder {
             IRBasicBlock u = dfsList.get(i);
             if (u.idom != null && u.idom != dfsList.get(u.semi - 1)) {
                 u.idom = u.idom.idom; // 如果当前立即支配者不等于半支配者节点，递归设置
+                idomGraph.put(u, u.idom.idom);
+                dominateGraph.get(u.idom.idom).add(u);
             } else {
                 u.idom = dfsList.get(u.semi - 1); // 否则，设置半支配者节点为立即支配者
+                idomGraph.put(u, u.idom);
+                dominateGraph.get(u.idom).add(u);
+            }
+        }
+    }
+
+    /**
+     * 计算支配边界
+     */
+    public void computeDominanceFrontier() {
+        // 按照逆后序（从后向前）遍历支配树
+        for (int i = dfsList.size() - 1; i >= 0; i--) {
+            IRBasicBlock block = dfsList.get(i);
+            // 遍历所有前驱节点
+            for (IRBasicBlock pred : block.getPreBlocks()) {
+                IRBasicBlock runner = pred;
+                // 遍历runner直到它等于block 的 idom
+                while (runner != block.idom) {
+                    dfGraph.get(runner).add(block); // 将当前节点添加到runner的支配边界
+                    runner = runner.idom; // 向上遍历支配树
+                }
+            }
+
+            // 遍历支配树的子节点，合并其支配边界
+            for (IRBasicBlock child : block.getDominateChildren()) {
+                for (IRBasicBlock df : dfGraph.get(child)) {
+                    if (df.idom != block) {
+                        dfGraph.get(block).add(df); // 如果df不被当前节点支配，添加到支配边界
+                    }
+                }
             }
         }
     }
 
     /**
      * 构建支配树，主入口方法
-     * @param entryBlock 入口节点
+     * @param function 构建支配树的函数
      */
-    public void buildDominatorTree(IRBasicBlock entryBlock) {
+    public void buildDominator(IRFunction function) {
+        IRBasicBlock entryBlock = function.getEntryBlock();
         dfs(entryBlock, null); // 进行DFS遍历，分配DFS编号
         computeImmediateDominator(); // 计算立即支配者
+        for (IRBasicBlock block : function.getBlocks()) {
+            block.setDominateChildren(dominateGraph.get(block));
+        }
+        function.setIdomGraph(idomGraph);
+        function.setDominateGraph(dominateGraph);
+
+        computeDominanceFrontier(); // 计算支配边界
+
     }
 
     /**
      * 打印支配树的结果
      */
-    public void printDominatorTree(IRFunction function) {
+    public void printDominator(IRFunction function) {
+        System.out.println("*************************** 立即支配树 ***************************");
         for (IRBasicBlock u : function.getBlocks()) { // 遍历所有节点
             if (u.idom != null) { // 如果有立即支配者
                 System.out.println(u.getName() + " is dominated by " + u.idom.getName());
@@ -213,5 +271,68 @@ public class DataFlowBuilder {
                 System.out.println(u.getName() + " is the entry block"); // 否则，是入口节点
             }
         }
+        System.out.println("*************************** 支配边界 ***************************");
+
+        for (IRBasicBlock u : function.getBlocks()) {
+            System.out.print("Dominance Frontier of " + u.getName() + ": ");
+            for (IRBasicBlock df : dfGraph.get(u)) {
+                System.out.print(df.getName() + " ");
+            }
+            System.out.println();
+        }
+
+    }
+
+    /**
+     * 在控制台中打印CFG
+     * @param function CFG所在的函数
+     */
+    public void printCFG(IRFunction function) {
+        HashSet<IRBasicBlock> visited = new HashSet<>();
+        StringBuilder output = new StringBuilder();
+        printCFGHelper(function.getEntryBlock(), "", true,
+                visited, new HashSet<>(), output);
+        Util.writeCFG(output.toString());
+    }
+
+    /**
+     * 递归辅助函数，用于打印CFG
+     * @param node 当前节点
+     * @param prefix 当前行的前缀字符串
+     * @param isTail 是否是当前层级的最后一个子节点
+     * @param visited 已访问的节点集合
+     * @param stack 当前递归栈，用于检测循环
+     * @param output 输出的样式
+     */
+    private void printCFGHelper(IRBasicBlock node, String prefix, boolean isTail,
+                                HashSet<IRBasicBlock> visited, HashSet<IRBasicBlock> stack,
+                                StringBuilder output) {
+        // 打印当前节点
+        output.append(prefix).append((prefix.isEmpty() ? "" : (isTail ? "└─ " : "├─ "))).
+                append(node).append("\n");
+
+        // 标记为已访问并添加到递归栈
+        visited.add(node);
+        stack.add(node);
+
+        List<IRBasicBlock> children = sucGraph.get(node);
+
+        for (int i = 0; i < children.size(); i++) {
+            IRBasicBlock child = children.get(i);
+            boolean last = (i == children.size() - 1);
+
+            if (!visited.contains(child)) {
+                // 递归打印子节点
+                String newPrefix = prefix + (isTail ? "    " : "│   ");
+                printCFGHelper(child, newPrefix, last, visited, stack, output);
+            } else {
+                // 已访问的节点，标记为循环
+                output.append(prefix).append((isTail ? "    " : "│   "))
+                        .append((last ? "└─ " : "├─ ")).append(child).append(" (loop)\n");
+            }
+        }
+
+        // 从递归栈中移除当前节点
+        stack.remove(node);
     }
 }

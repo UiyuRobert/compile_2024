@@ -24,7 +24,8 @@ public class IRBasicBlock extends IRValue {
     public IRBasicBlock ancestor; // 并查集中的祖先节点
     public IRBasicBlock label; // 节点的标签，用于路径压缩
     public ArrayList<IRBasicBlock> bucket = new ArrayList<>(); // 存储可能的支配者节点
-    public IRBasicBlock idom; // 立即支配者节点
+    public IRBasicBlock idom; // 立即支配者节点，被 idom 直接支配
+    public ArrayList<IRBasicBlock> dominateChildren;
 
     public IRBasicBlock(String name) {
         super(IRLabelType.getLabel(), name);
@@ -37,6 +38,10 @@ public class IRBasicBlock extends IRValue {
         return "block_" + BLOCK_COUNTER++;
     }
 
+    public void setDominateChildren(ArrayList<IRBasicBlock> dominateChildren) {
+        this.dominateChildren = dominateChildren;
+    }
+
     public void setPreBlocks(ArrayList<IRBasicBlock> preBlocks) { this.preBlocks = preBlocks; }
 
     public void setSucBlocks(ArrayList<IRBasicBlock> sucBlocks) { this.sucBlocks = sucBlocks; }
@@ -44,6 +49,8 @@ public class IRBasicBlock extends IRValue {
     public ArrayList<IRBasicBlock> getPreBlocks() { return preBlocks; }
 
     public ArrayList<IRBasicBlock> getSucBlocks() { return sucBlocks; }
+
+    public ArrayList<IRBasicBlock> getDominateChildren() { return dominateChildren; }
 
     public void addInstruction(IRInstruction instruction){
         this.instructions.add(instruction);
@@ -72,5 +79,10 @@ public class IRBasicBlock extends IRValue {
         for (IRInstruction instruction : instructions) {
             instruction.toAssembly();
         }
+    }
+
+    @Override
+    public String toString() {
+        return this.getName();
     }
 }

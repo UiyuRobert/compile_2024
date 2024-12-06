@@ -20,12 +20,24 @@ public class IRFunction extends IRValue {
     // 后继 CFG
     private HashMap<IRBasicBlock, ArrayList<IRBasicBlock>> sucGraph;
 
+    // 支配树、直接支配
+    private HashMap<IRBasicBlock, IRBasicBlock> idomGraph; // 直接支配者，block-> idomBlock
+    private HashMap<IRBasicBlock, ArrayList<IRBasicBlock>> dominateGraph; // block 支配的其它 block
+
     public IRFunction(IRType type, String name) {
         super(type, name); //
         counter = 1;
         blocks = new ArrayList<>();
         preGraph = null;
         sucGraph = null;
+    }
+
+    public void setIdomGraph(HashMap<IRBasicBlock, IRBasicBlock> idomGraph) {
+        this.idomGraph = idomGraph;
+    }
+
+    public void setDominateGraph(HashMap<IRBasicBlock, ArrayList<IRBasicBlock>> dominateGraph) {
+        this.dominateGraph = dominateGraph;
     }
 
     public void setPreGraph(HashMap<IRBasicBlock, ArrayList<IRBasicBlock>> preGraph) {
