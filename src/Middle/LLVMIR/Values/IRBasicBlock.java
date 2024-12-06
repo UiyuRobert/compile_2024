@@ -6,6 +6,7 @@ import Middle.LLVMIR.Values.Instructions.IRInstruction;
 import Middle.LLVMIR.Values.Instructions.IRLabel;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 
 public class IRBasicBlock extends IRValue {
     private static int BLOCK_COUNTER = 0;
@@ -25,18 +26,48 @@ public class IRBasicBlock extends IRValue {
     public IRBasicBlock label; // 节点的标签，用于路径压缩
     public ArrayList<IRBasicBlock> bucket = new ArrayList<>(); // 存储可能的支配者节点
     public IRBasicBlock idom; // 立即支配者节点，被 idom 直接支配
-    public ArrayList<IRBasicBlock> dominateChildren;
+    private ArrayList<IRBasicBlock> dominateChildren; // 直接支配的基本块
+
+    // 该块的支配者，也就是该块被哪些基本块支配
+    private ArrayList<IRBasicBlock> dominators;
+
+    // 该基本块的支配边界
+    private LinkedHashSet<IRBasicBlock> df;
 
     public IRBasicBlock(String name) {
         super(IRLabelType.getLabel(), name);
         this.instructions = new ArrayList<>();
+        optimizeInit();
+    }
+
+    public void optimizeInit() {
         this.preBlocks = null;
         this.sucBlocks = null;
+        this.ancestor = null;
+        this.semi = 0;
+        this.dfsOrder = 0;
+        this.parent = 0;
+        this.bucket = new ArrayList<>();
+        this.dominateChildren = null;
+        this.dominators = null;
+        this.df = null;
     }
 
     public static String getBlockName() {
         return "block_" + BLOCK_COUNTER++;
     }
+
+    public void setInstructions(ArrayList<IRInstruction> instructions) {
+        this.instructions = instructions;
+    }
+
+    public void setDf(LinkedHashSet<IRBasicBlock> df) { this.df = df; }
+
+    public void setDominators(ArrayList<IRBasicBlock> dominators) {
+        this.dominators = dominators;
+    }
+
+    public ArrayList<IRInstruction> getInstructions() { return instructions; }
 
     public void setDominateChildren(ArrayList<IRBasicBlock> dominateChildren) {
         this.dominateChildren = dominateChildren;

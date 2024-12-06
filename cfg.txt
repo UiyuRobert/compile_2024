@@ -1,26 +1,24 @@
-block_0
-    └─ block_2
-        ├─ block_3
-        │   ├─ block_5
-        │   │   └─ block_4
-        │   │       ├─ block_7
-        │   │       │   └─ block_6
-        │   │       │       ├─ block_9
-        │   │       │       │   └─ block_8
-        │   │       │       │       ├─ block_12
-        │   │       │       │       │   └─ block_11
-        │   │       │       │       │       └─ block_13
-        │   │       │       │       │           └─ block_2 (loop)
-        │   │       │       │       └─ block_11 (loop)
-        │   │       │       └─ block_10
-        │   │       │           └─ block_8 (loop)
-        │   │       └─ block_6 (loop)
-        │   └─ block_4 (loop)
-        └─ block_1
-            ├─ block_15
-            │   ├─ block_17
-            │   │   └─ block_16
-            │   │       └─ block_14
-            │   └─ block_18
-            │       └─ block_16 (loop)
-            └─ block_14 (loop)
+block_5
+    ├─ block_8
+    │   ├─ block_7
+    │   │   ├─ block_10
+    │   │   │   └─ block_9
+    │   │   │       └─ block_6
+    │   │   │           ├─ block_15
+    │   │   │           │   ├─ block_18
+    │   │   │           │   │   └─ block_17
+    │   │   │           │   │       └─ block_14
+    │   │   │           │   └─ block_19
+    │   │   │           │       ├─ block_18 (loop)
+    │   │   │           │       └─ block_17 (loop)
+    │   │   │           └─ block_16
+    │   │   │               ├─ block_15 (loop)
+    │   │   │               └─ block_14 (loop)
+    │   │   └─ block_12
+    │   │       ├─ block_13
+    │   │       │   ├─ block_10 (loop)
+    │   │       │   └─ block_11
+    │   │       │       └─ block_9 (loop)
+    │   │       └─ block_11 (loop)
+    │   └─ block_6 (loop)
+    └─ block_6 (loop)

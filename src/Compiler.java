@@ -16,6 +16,7 @@ import Frontend.SyntaxAnalysis.Nodes.CompUnitNode;
 import Frontend.SyntaxAnalysis.Parser;
 import Middle.LLVMIR.IRModule;
 import Middle.Optimize.DataFlowBuilder;
+import Middle.Optimize.Optimizer;
 import Middle.Visitor;
 
 import static Middle.Symbols.SymbolTable.record;
@@ -48,15 +49,17 @@ public class Compiler {
         // System.out.println(parser.getParseResult());
         /*-- 语义分析，中间代码生成 --*/
         Visitor visitor = new Visitor();
+        Optimizer optimizer = Optimizer.getOptimizer();
+
         IRModule module = visitor.visit(compUnit);
+        optimizer.run(module);
         symbolResult = sortAndGen(record); // 符号表
         llvmResult = module.getIR();
+
         module.toAssembly();
         mipsResult = MipsBuilder.builder().getResult();
         //System.out.println(mipsResult);
 
-        DataFlowBuilder dfBuilder = new DataFlowBuilder(module);
-        dfBuilder.run();
 
         /*--判断是否有错误--*/
         if (ErrorHandling.isErrorOccurred()) {

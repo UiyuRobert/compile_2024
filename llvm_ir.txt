@@ -4,165 +4,175 @@ declare void @putint(i32)
 declare void @putchar(i32)
 declare void @putstr(i8*)
 
-@GLa1 = dso_local constant i32 1
-@GLa2 = dso_local constant i32 3
-@GLa3 = dso_local constant i32 8
-@GLb1 = dso_local global i32 2
-@GLb2 = dso_local global i32 -5
-@GLb3 = dso_local global i32 6
+@GLZERO = dso_local constant i32 0
+@GLONE = dso_local constant i32 1
+@GLvar2 = dso_local global i32 2
+@GLvar3 = dso_local global i32 3
 
 @pvtstr0 = private unnamed_addr constant [2 x i8] c"\0A\00", align 1
-@pvtstr1 = private unnamed_addr constant [20 x i8] c"Continue is error!\0A\00", align 1
-@pvtstr2 = private unnamed_addr constant [32 x i8] c"Break is error!And < is error!\0A\00", align 1
-@pvtstr3 = private unnamed_addr constant [15 x i8] c"+ is correct!\0A\00", align 1
-@pvtstr4 = private unnamed_addr constant [13 x i8] c"+ is error!\0A\00", align 1
-@pvtstr5 = private unnamed_addr constant [17 x i8] c"Break is error!\0A\00", align 1
-@pvtstr6 = private unnamed_addr constant [20 x i8] c"Continue is error!\0A\00", align 1
-@pvtstr7 = private unnamed_addr constant [10 x i8] c"a1+b1 is \00", align 1
-@pvtstr8 = private unnamed_addr constant [2 x i8] c"\0A\00", align 1
-@pvtstr9 = private unnamed_addr constant [10 x i8] c"a2+b2 is \00", align 1
-@pvtstr10 = private unnamed_addr constant [2 x i8] c"\0A\00", align 1
+@pvtstr1 = private unnamed_addr constant [10 x i8] c"21373457\0A\00", align 1
+@pvtstr2 = private unnamed_addr constant [8 x i8] c"ERROR!\0A\00", align 1
+@pvtstr3 = private unnamed_addr constant [14 x i8] c"And success!\0A\00", align 1
+@pvtstr4 = private unnamed_addr constant [10 x i8] c"Or pass!\0A\00", align 1
+@pvtstr5 = private unnamed_addr constant [15 x i8] c"Test1 Success!\00", align 1
 
-define dso_local i32 @main() {
+define dso_local void @fun() {
 ; ************************block_0 start ****************************
 
-entry_main:
-	call void @putstr(i8* getelementptr inbounds ([2 x i8], [2 x i8]* @pvtstr0, i64 0, i64 0))
+entry_fun:
 	%var1 = alloca i32
-	store i32 10, i32* %var1
+	store i32 1, i32* %var1
+	%var2 = alloca i32
+	store i32 1, i32* %var2
 	br label %Label3
 ; ***************************block_0 end *************************
 ; ************************block_2 start ****************************
 
 Label3:
-	%var2 = load i32, i32* %var1
-	%var3 = icmp ne i32 %var2, 0
-	br i1 %var3, label %Label5, label %Label2
+	%var3 = load i32, i32* %var2
+	%var4 = icmp slt i32 %var3, 1000
+	br i1 %var4, label %Label5, label %Label2
 ; ***************************block_2 end *************************
 ; ************************block_3 start ****************************
 
 Label5:
-	%var4 = load i32, i32* %var1
-	%var5 = sub nsw i32 %var4, 1
-	store i32 %var5, i32* %var1
-	%var7 = load i32, i32* %var1
-	%var8 = load i32, i32* @GLb3
-	%var9 = icmp slt i32 %var7, %var8
-	br i1 %var9, label %Label7, label %Label6
-; ***************************block_3 end *************************
-; ************************block_5 start ****************************
-
-Label7:
-	br label %Label4
-	call void @putstr(i8* getelementptr inbounds ([20 x i8], [20 x i8]* @pvtstr1, i64 0, i64 0))
-	br label %Label6
-; ***************************block_5 end *************************
-; ************************block_4 start ****************************
-
-Label6:
-	%var10 = load i32, i32* %var1
-	%var11 = load i32, i32* @GLa1
-	%var12 = icmp slt i32 %var10, %var11
-	br i1 %var12, label %Label9, label %Label8
-; ***************************block_4 end *************************
-; ************************block_7 start ****************************
-
-Label9:
-	br label %Label2
-	call void @putstr(i8* getelementptr inbounds ([32 x i8], [32 x i8]* @pvtstr2, i64 0, i64 0))
-	br label %Label8
-; ***************************block_7 end *************************
-; ************************block_6 start ****************************
-
-Label8:
-	%var13 = load i32, i32* %var1
-	%var14 = load i32, i32* @GLa2
-	%var15 = icmp eq i32 %var13, %var14
-	br i1 %var15, label %Label11, label %Label12
-; ***************************block_6 end *************************
-; ************************block_9 start ****************************
-
-Label11:
-	call void @putstr(i8* getelementptr inbounds ([15 x i8], [15 x i8]* @pvtstr3, i64 0, i64 0))
-	br label %Label10
-; ***************************block_9 end *************************
-; ************************block_10 start ****************************
-
-Label12:
-	call void @putstr(i8* getelementptr inbounds ([13 x i8], [13 x i8]* @pvtstr4, i64 0, i64 0))
-	br label %Label10
-; ***************************block_10 end *************************
-; ************************block_8 start ****************************
-
-Label10:
-	%var16 = load i32, i32* %var1
-	%var17 = load i32, i32* @GLb1
-	%var18 = icmp eq i32 %var16, %var17
-	br i1 %var18, label %Label14, label %Label13
-; ***************************block_8 end *************************
-; ************************block_12 start ****************************
-
-Label14:
-	br label %Label2
-	br label %Label13
-; ***************************block_12 end *************************
-; ************************block_11 start ****************************
-
-Label13:
-	br label %Label4
-; ***************************block_11 end *************************
-; ************************block_13 start ****************************
-
-Label4:
+	%var5 = load i32, i32* %var2
+	%var6 = mul nsw i32 %var5, 2
+	store i32 %var6, i32* %var2
 	br label %Label3
-; ***************************block_13 end *************************
+; ***************************block_3 end *************************
 ; ************************block_1 start ****************************
 
 Label2:
-	%var19 = load i32, i32* %var1
-	%var20 = load i32, i32* @GLb1
-	%var21 = icmp ne i32 %var19, %var20
-	br i1 %var21, label %Label16, label %Label15
+	call void @putstr(i8* getelementptr inbounds ([2 x i8], [2 x i8]* @pvtstr0, i64 0, i64 0))
+	%var8 = load i32, i32* %var2
+	call void @putint(i32 %var8)
+	ret void
 ; ***************************block_1 end *************************
-; ************************block_15 start ****************************
+}
+define dso_local i32 @main() {
+; ************************block_5 start ****************************
 
-Label16:
-	%var22 = load i32, i32* %var1
-	%var23 = icmp eq i32 %var22, 0
-	br i1 %var23, label %Label18, label %Label19
-; ***************************block_15 end *************************
-; ************************block_17 start ****************************
+entry_main:
+	call void @putstr(i8* getelementptr inbounds ([10 x i8], [10 x i8]* @pvtstr1, i64 0, i64 0))
+	%var1 = load i32, i32* @GLZERO
+	%var2 = load i32, i32* @GLvar2
+	%var3 = add nsw i32 %var1, %var2
+	%var4 = load i32, i32* @GLvar3
+	%var5 = load i32, i32* @GLONE
+	%var6 = sub nsw i32 %var4, %var5
+	%var7 = icmp eq i32 %var3, %var6
+	br i1 %var7, label %Label9, label %Label7
+; ***************************block_5 end *************************
+; ************************block_8 start ****************************
 
-Label18:
-	call void @putstr(i8* getelementptr inbounds ([17 x i8], [17 x i8]* @pvtstr5, i64 0, i64 0))
-	br label %Label17
-; ***************************block_17 end *************************
-; ************************block_18 start ****************************
+Label9:
+	%var8 = load i32, i32* @GLONE
+	%var9 = icmp ne i32 %var8, 0
+	br i1 %var9, label %Label8, label %Label7
+; ***************************block_8 end *************************
+; ************************block_7 start ****************************
 
-Label19:
-	call void @putstr(i8* getelementptr inbounds ([20 x i8], [20 x i8]* @pvtstr6, i64 0, i64 0))
-	br label %Label17
-; ***************************block_18 end *************************
+Label8:
+	%var10 = load i32, i32* @GLZERO
+	%var11 = icmp ne i32 %var10, 0
+	br i1 %var11, label %Label11, label %Label13
+; ***************************block_7 end *************************
+; ************************block_12 start ****************************
+
+Label13:
+	%var12 = load i32, i32* @GLZERO
+	%var13 = icmp eq i32 0, %var12
+	%var14 = zext i1 %var13 to i32
+	%var15 = icmp ne i32 %var14, 0
+	br i1 %var15, label %Label14, label %Label12
+; ***************************block_12 end *************************
+; ************************block_13 start ****************************
+
+Label14:
+	%var16 = load i32, i32* @GLONE
+	%var17 = add nsw i32 %var16, 1
+	%var18 = load i32, i32* @GLvar2
+	%var19 = add nsw i32 %var17, %var18
+	%var20 = icmp slt i32 %var19, 0
+	br i1 %var20, label %Label11, label %Label12
+; ***************************block_13 end *************************
+; ************************block_10 start ****************************
+
+Label11:
+	call void @putstr(i8* getelementptr inbounds ([8 x i8], [8 x i8]* @pvtstr2, i64 0, i64 0))
+	br label %Label10
+; ***************************block_10 end *************************
+; ************************block_11 start ****************************
+
+Label12:
+	call void @putstr(i8* getelementptr inbounds ([14 x i8], [14 x i8]* @pvtstr3, i64 0, i64 0))
+	br label %Label10
+; ***************************block_11 end *************************
+; ************************block_9 start ****************************
+
+Label10:
+	br label %Label7
+; ***************************block_9 end *************************
+; ************************block_6 start ****************************
+
+Label7:
+	%var21 = load i32, i32* @GLvar3
+	%var22 = icmp ne i32 %var21, 3
+	br i1 %var22, label %Label16, label %Label17
+; ***************************block_6 end *************************
 ; ************************block_16 start ****************************
 
 Label17:
-	br label %Label15
+	%var23 = load i32, i32* @GLvar2
+	%var24 = sub nsw i32 %var23, 22
+	%var25 = sub nsw i32 0, 20
+	%var26 = icmp eq i32 %var24, %var25
+	br i1 %var26, label %Label16, label %Label15
 ; ***************************block_16 end *************************
+; ************************block_15 start ****************************
+
+Label16:
+	%var27 = load i32, i32* @GLONE
+	%var28 = srem i32 %var27, 2
+	%var29 = add nsw i32 %var28, 3
+	%var30 = mul nsw i32 4, 2
+	%var31 = sub nsw i32 %var29, %var30
+	%var32 = load i32, i32* @GLvar3
+	%var33 = add nsw i32 %var31, %var32
+	%var34 = load i32, i32* @GLvar2
+	%var35 = add nsw i32 %var33, %var34
+	%var36 = icmp sle i32 %var35, 100
+	br i1 %var36, label %Label19, label %Label20
+; ***************************block_15 end *************************
+; ************************block_19 start ****************************
+
+Label20:
+	%var37 = load i32, i32* @GLONE
+	%var38 = icmp ne i32 %var37, 0
+	br i1 %var38, label %Label19, label %Label18
+; ***************************block_19 end *************************
+; ************************block_18 start ****************************
+
+Label19:
+	call void @putstr(i8* getelementptr inbounds ([10 x i8], [10 x i8]* @pvtstr4, i64 0, i64 0))
+	br label %Label18
+; ***************************block_18 end *************************
+; ************************block_17 start ****************************
+
+Label18:
+	br label %Label15
+; ***************************block_17 end *************************
 ; ************************block_14 start ****************************
 
 Label15:
-	call void @putstr(i8* getelementptr inbounds ([10 x i8], [10 x i8]* @pvtstr7, i64 0, i64 0))
-	%var24 = load i32, i32* @GLa1
-	%var25 = load i32, i32* @GLb1
-	%var26 = add nsw i32 %var24, %var25
-	call void @putint(i32 %var26)
-	call void @putstr(i8* getelementptr inbounds ([2 x i8], [2 x i8]* @pvtstr8, i64 0, i64 0))
-	call void @putstr(i8* getelementptr inbounds ([10 x i8], [10 x i8]* @pvtstr9, i64 0, i64 0))
-	%var27 = load i32, i32* @GLa2
-	%var28 = load i32, i32* @GLb2
-	%var29 = add nsw i32 %var27, %var28
-	call void @putint(i32 %var29)
-	call void @putstr(i8* getelementptr inbounds ([2 x i8], [2 x i8]* @pvtstr10, i64 0, i64 0))
+	call void @putstr(i8* getelementptr inbounds ([15 x i8], [15 x i8]* @pvtstr5, i64 0, i64 0))
+	call void @fun()
+	call void @fun()
+	call void @fun()
+	call void @fun()
+	call void @fun()
+	call void @fun()
 	ret i32 0
 ; ***************************block_14 end *************************
 }

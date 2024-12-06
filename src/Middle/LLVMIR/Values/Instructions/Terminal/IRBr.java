@@ -31,7 +31,9 @@ public class IRBr extends IRInstruction {
         super(IRInstrType.Br, IRVoidType.Void(), 3);
         this.cond = cond;
         this.trueLabel = trueLabel;
+        this.trueLabel.addJumpNumber();
         this.falseLabel = falseLabel;
+        this.falseLabel.addJumpNumber();
         this.dest = null;
         IRUse use1 = new IRUse(this, cond, 0);
         this.addUse(use1);
@@ -49,6 +51,7 @@ public class IRBr extends IRInstruction {
     public IRBr(IRLabel dest) {
         super(IRInstrType.Br, IRVoidType.Void(), 1);
         this.dest = dest;
+        this.dest.addJumpNumber();
         IRUse use = new IRUse(this, dest, 0);
         this.addUse(use);
         dest.addUse(use);

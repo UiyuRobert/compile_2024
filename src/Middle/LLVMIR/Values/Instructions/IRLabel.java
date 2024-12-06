@@ -8,9 +8,21 @@ public class IRLabel extends IRInstruction {
     private static int count = 0;
     private IRBasicBlock belongsTo;
 
+    // opt
+    private int jumpNumber;
+
     public IRLabel() {
         super(IRInstrType.Label, IRLabelType.getLabel(), 0);
         this.setName("%Label" + ++count);
+        optimizeInit();
+    }
+
+    public void optimizeInit() {
+        jumpNumber = 0;
+    }
+
+    public boolean isOnlyOneJump() {
+        return jumpNumber == 1;
     }
 
     public IRBasicBlock getBelongsTo() { return belongsTo; }
@@ -28,6 +40,8 @@ public class IRLabel extends IRInstruction {
     public String getMipsName() {
         return getName().substring(1);
     }
+
+    public void addJumpNumber() { ++jumpNumber; }
 
     @Override
     public void toAssembly() {

@@ -24,12 +24,22 @@ public class IRFunction extends IRValue {
     private HashMap<IRBasicBlock, IRBasicBlock> idomGraph; // 直接支配者，block-> idomBlock
     private HashMap<IRBasicBlock, ArrayList<IRBasicBlock>> dominateGraph; // block 支配的其它 block
 
+    // 支配者
+    private HashMap<IRBasicBlock, ArrayList<IRBasicBlock>> dominatorGraph;
+
     public IRFunction(IRType type, String name) {
         super(type, name); //
         counter = 1;
         blocks = new ArrayList<>();
         preGraph = null;
         sucGraph = null;
+        idomGraph = null;
+        dominateGraph = null;
+        dominatorGraph = null;
+    }
+
+    public void setDominatorGraph(HashMap<IRBasicBlock, ArrayList<IRBasicBlock>> dominatorGraph) {
+        this.dominatorGraph = dominatorGraph;
     }
 
     public void setIdomGraph(HashMap<IRBasicBlock, IRBasicBlock> idomGraph) {
@@ -89,9 +99,13 @@ public class IRFunction extends IRValue {
         return builder.toString();
     }
 
+    public String getMipsName() {
+        return this.getName().substring(1);
+    }
+
     public void toAssembly() {
         // 函数的开始 label
-        new LabelAsm(this.getName().substring(1));
+        new LabelAsm(getMipsName());
 
         MipsBuilder builder = MipsBuilder.builder();
         // 进入新函数清空了 新$SP的offset，但是因为有函数参数的存在，需要设置参数与offset的对应关系

@@ -25,6 +25,6 @@ public class Util {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        System.out.println("Write CFG Success !");
+        // System.out.println("Write CFG Success !");
     }
 }
